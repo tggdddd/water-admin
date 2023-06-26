@@ -24,7 +24,7 @@ import java.util.Arrays;
 /**
  * @Description: 派送表
  * @Author: jeecg-boot
- * @Date: 2023-06-25
+ * @Date: 2023-06-26
  * @Version: V1.0
  */
 @Api(tags = "派送表")
@@ -58,7 +58,7 @@ public class WaterSendController extends JeecgController<WaterSend, IWaterSendSe
     }
 
     /**
-     * 添加
+     *   添加
      *
      * @param waterSend
      * @return
@@ -73,7 +73,7 @@ public class WaterSendController extends JeecgController<WaterSend, IWaterSendSe
     }
 
     /**
-     * 编辑
+     *  编辑
      *
      * @param waterSend
      * @return
@@ -88,7 +88,7 @@ public class WaterSendController extends JeecgController<WaterSend, IWaterSendSe
     }
 
     /**
-     * 通过id删除
+     *   通过id删除
      *
      * @param id
      * @return
@@ -103,7 +103,7 @@ public class WaterSendController extends JeecgController<WaterSend, IWaterSendSe
     }
 
     /**
-     * 批量删除
+     *  批量删除
      *
      * @param ids
      * @return

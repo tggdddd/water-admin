@@ -18,7 +18,7 @@ import java.io.Serializable;
 /**
  * @Description: 订单
  * @Author: jeecg-boot
- * @Date: 2023-06-25
+ * @Date: 2023-06-26
  * @Version: V1.0
  */
 @Data
@@ -100,12 +100,12 @@ public class WaterOrder implements Serializable {
     @ApiModelProperty(value = "地址")
     private java.lang.String address;
     /**
-     * 水
+     * 商品
      */
-    @Excel(name = "水", width = 15, dictTable = "water_type", dicText = "name", dicCode = "id")
-    @Dict(dictTable = "water_type", dicText = "name", dicCode = "id")
-    @ApiModelProperty(value = "水")
-    private java.lang.String waterId;
+    @Excel(name = "商品", width = 15, dictTable = "water_shop_item", dicText = "name", dicCode = "id")
+    @Dict(dictTable = "water_shop_item", dicText = "name", dicCode = "id")
+    @ApiModelProperty(value = "商品")
+    private java.lang.String shopItemId;
     /**
      * 数量
      */
@@ -144,4 +144,16 @@ public class WaterOrder implements Serializable {
     @Dict(dictTable = "sys_depart", dicText = "depart_name", dicCode = "id")
     @ApiModelProperty(value = "分配区域")
     private java.lang.String locatonType;
+    /**
+     * 地区
+     */
+    @Excel(name = "地区", width = 15)
+    @ApiModelProperty(value = "地区")
+    private java.lang.String area;
+    /**
+     * 逻辑删除
+     */
+    @Excel(name = "逻辑删除", width = 15)
+    @ApiModelProperty(value = "逻辑删除")
+    private java.lang.String isDelete;
 }

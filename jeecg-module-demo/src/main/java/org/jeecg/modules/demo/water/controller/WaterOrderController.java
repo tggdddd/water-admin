@@ -24,7 +24,7 @@ import java.util.Arrays;
 /**
  * @Description: 订单
  * @Author: jeecg-boot
- * @Date: 2023-06-25
+ * @Date: 2023-06-26
  * @Version: V1.0
  */
 @Api(tags = "订单")
@@ -58,7 +58,7 @@ public class WaterOrderController extends JeecgController<WaterOrder, IWaterOrde
     }
 
     /**
-     * 添加
+     *   添加
      *
      * @param waterOrder
      * @return
@@ -73,7 +73,7 @@ public class WaterOrderController extends JeecgController<WaterOrder, IWaterOrde
     }
 
     /**
-     * 编辑
+     *  编辑
      *
      * @param waterOrder
      * @return
@@ -88,7 +88,7 @@ public class WaterOrderController extends JeecgController<WaterOrder, IWaterOrde
     }
 
     /**
-     * 通过id删除
+     *   通过id删除
      *
      * @param id
      * @return
@@ -103,7 +103,7 @@ public class WaterOrderController extends JeecgController<WaterOrder, IWaterOrde
     }
 
     /**
-     * 批量删除
+     *  批量删除
      *
      * @param ids
      * @return

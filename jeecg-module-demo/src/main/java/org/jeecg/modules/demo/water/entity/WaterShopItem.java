@@ -7,8 +7,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
 import org.jeecgframework.poi.excel.annotation.Excel;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -16,17 +14,15 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
 /**
- * @Description: 水的类型
+ * @Description: 实际商品
  * @Author: jeecg-boot
  * @Date: 2023-06-26
  * @Version: V1.0
  */
+@ApiModel(value = "water_shop_item对象", description = "实际商品")
 @Data
-@TableName("water_type")
-@Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-@ApiModel(value = "water_type对象", description = "水的类型")
-public class WaterType implements Serializable {
+@TableName("water_shop_item")
+public class WaterShopItem implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -65,17 +61,59 @@ public class WaterType implements Serializable {
     @ApiModelProperty(value = "所属部门")
     private java.lang.String sysOrgCode;
     /**
-     * 名称
+     * 商品编码
      */
-    @Excel(name = "名称", width = 15)
-    @ApiModelProperty(value = "名称")
+    @Excel(name = "商品编码", width = 15)
+    @ApiModelProperty(value = "商品编码")
+    private java.lang.String code;
+    /**
+     * 商品名称
+     */
+    @Excel(name = "商品名称", width = 15)
+    @ApiModelProperty(value = "商品名称")
     private java.lang.String name;
     /**
-     * 单价
+     * 型号/规格
      */
-    @Excel(name = "单价", width = 15)
-    @ApiModelProperty(value = "单价")
-    private java.lang.String price;
+    @Excel(name = "型号/规格", width = 15)
+    @ApiModelProperty(value = "型号/规格")
+    private java.lang.String model;
+    /**
+     * 成本
+     */
+    @Excel(name = "成本", width = 15)
+    @ApiModelProperty(value = "成本")
+    private java.lang.String cost;
+    /**
+     * 零售
+     */
+    @Excel(name = "零售", width = 15)
+    @ApiModelProperty(value = "零售")
+    private java.lang.String retail;
+    /**
+     * 重量(kg)
+     */
+    @Excel(name = "重量(kg)", width = 15)
+    @ApiModelProperty(value = "重量(kg)")
+    private java.lang.String weight;
+    /**
+     * 库存
+     */
+    @Excel(name = "库存", width = 15)
+    @ApiModelProperty(value = "库存")
+    private java.lang.String reserve;
+    /**
+     * 逻辑删除
+     */
+    @Excel(name = "逻辑删除", width = 15)
+    @ApiModelProperty(value = "逻辑删除")
+    private java.lang.String isDelete;
+    /**
+     * 是否启用
+     */
+    @Excel(name = "是否启用", width = 15, dicCode = "yes_or_no")
+    @ApiModelProperty(value = "是否启用")
+    private java.lang.String status;
     /**
      * 图片
      */
@@ -83,6 +121,11 @@ public class WaterType implements Serializable {
     private transient java.lang.String imageString;
 
     private byte[] image;
+    /**
+     * 所属商品
+     */
+    @ApiModelProperty(value = "所属商品")
+    private java.lang.String fromId;
 
     public byte[] getImage() {
         if (imageString == null) {

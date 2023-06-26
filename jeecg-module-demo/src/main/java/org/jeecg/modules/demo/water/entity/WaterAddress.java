@@ -16,17 +16,17 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.io.Serializable;
 
 /**
- * @Description: 派送表
+ * @Description: 用户地址
  * @Author: jeecg-boot
  * @Date: 2023-06-26
  * @Version: V1.0
  */
 @Data
-@TableName("water_send")
+@TableName("water_address")
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@ApiModel(value = "water_send对象", description = "派送表")
-public class WaterSend implements Serializable {
+@ApiModel(value = "water_address对象", description = "用户地址")
+public class WaterAddress implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -65,45 +65,34 @@ public class WaterSend implements Serializable {
     @ApiModelProperty(value = "所属部门")
     private java.lang.String sysOrgCode;
     /**
-     * 派送人
+     * 地区
      */
-    @Excel(name = "派送人", width = 15, dictTable = "sys_user", dicText = "realname", dicCode = "id")
+    @Excel(name = "地区", width = 15)
+    @ApiModelProperty(value = "地区")
+    private java.lang.String area;
+    /**
+     * 地址
+     */
+    @Excel(name = "地址", width = 15)
+    @ApiModelProperty(value = "地址")
+    private java.lang.String address;
+    /**
+     * 用户
+     */
+    @Excel(name = "用户", width = 15, dictTable = "sys_user", dicText = "realname", dicCode = "id")
     @Dict(dictTable = "sys_user", dicText = "realname", dicCode = "id")
-    @ApiModelProperty(value = "派送人")
+    @ApiModelProperty(value = "用户")
     private java.lang.String userId;
     /**
-     * 状态
+     * 姓名
      */
-    @Excel(name = "状态", width = 15, dicCode = "send_type")
-    @Dict(dicCode = "send_type")
-    @ApiModelProperty(value = "状态")
-    private java.lang.String status;
+    @Excel(name = "姓名", width = 15)
+    @ApiModelProperty(value = "姓名")
+    private java.lang.String name;
     /**
-     * 接单时间
+     * 联系电话
      */
-    @Excel(name = "接单时间", width = 20, format = "yyyy-MM-dd HH:mm:ss")
-    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @ApiModelProperty(value = "接单时间")
-    private java.util.Date startTime;
-    /**
-     * 结束时间
-     */
-    @Excel(name = "结束时间", width = 20, format = "yyyy-MM-dd HH:mm:ss")
-    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @ApiModelProperty(value = "结束时间")
-    private java.util.Date endTime;
-    /**
-     * 订单号
-     */
-    @Excel(name = "订单号", width = 15)
-    @ApiModelProperty(value = "订单号")
-    private java.lang.String orderId;
-    /**
-     * 逻辑删除
-     */
-    @Excel(name = "逻辑删除", width = 15)
-    @ApiModelProperty(value = "逻辑删除")
-    private java.lang.String isDelete;
+    @Excel(name = "联系电话", width = 15)
+    @ApiModelProperty(value = "联系电话")
+    private java.lang.String phone;
 }
