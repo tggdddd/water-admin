@@ -1,6 +1,6 @@
 package org.jeecg.modules.demo.water.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.yulichang.base.MPJBaseServiceImpl;
 import org.jeecg.modules.demo.water.entity.WaterShop;
 import org.jeecg.modules.demo.water.entity.WaterShopItem;
 import org.jeecg.modules.demo.water.mapper.WaterShopItemMapper;
@@ -21,7 +21,7 @@ import java.util.List;
  * @Version: V1.0
  */
 @Service
-public class WaterShopServiceImpl extends ServiceImpl<WaterShopMapper, WaterShop> implements IWaterShopService {
+public class WaterShopServiceImpl extends MPJBaseServiceImpl<WaterShopMapper, WaterShop> implements IWaterShopService {
 
     @Autowired
     private WaterShopMapper waterShopMapper;

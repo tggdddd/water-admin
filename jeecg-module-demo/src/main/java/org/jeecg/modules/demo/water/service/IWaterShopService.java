@@ -1,6 +1,6 @@
 package org.jeecg.modules.demo.water.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.github.yulichang.base.MPJBaseService;
 import org.jeecg.modules.demo.water.entity.WaterShop;
 import org.jeecg.modules.demo.water.entity.WaterShopItem;
 
@@ -14,7 +14,7 @@ import java.util.List;
  * @Date: 2023-06-26
  * @Version: V1.0
  */
-public interface IWaterShopService extends IService<WaterShop> {
+public interface IWaterShopService extends MPJBaseService<WaterShop> {
 
     /**
      * 添加一对多
