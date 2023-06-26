@@ -192,9 +192,9 @@ public class WaterClassController extends JeecgController<WaterClass, IWaterClas
 	@RequiresPermissions("water:water_class:add")
 	@PostMapping(value = "/add")
 	public Result<String> add(@RequestBody WaterClass waterClass) {
-		if (waterClass.getPid() != null) {
-			waterClass.setLevel(waterClassService.getById(waterClass.getPid()).getLevel() + 1);
-		}
+//		if (waterClass.getPid() != null) {
+//			waterClass.setLevel(waterClassService.getById(waterClass.getPid()).getLevel() + 1);
+//		}
 		waterClassService.addWaterClass(waterClass);
 		return Result.OK("添加成功！");
 	}
@@ -210,9 +210,9 @@ public class WaterClassController extends JeecgController<WaterClass, IWaterClas
 	@RequiresPermissions("water:water_class:edit")
 	@RequestMapping(value = "/edit", method = {RequestMethod.PUT, RequestMethod.POST})
 	public Result<String> edit(@RequestBody WaterClass waterClass) {
-		if (waterClass.getPid() != null) {
-			waterClass.setLevel(waterClassService.getById(waterClass.getPid()).getLevel() + 1);
-		}
+//		if (waterClass.getPid() != null) {
+//			waterClass.setLevel(waterClassService.getById(waterClass.getPid()).getLevel() + 1);
+//		}
 		waterClassService.updateWaterClass(waterClass);
 		return Result.OK("编辑成功!");
 	}

@@ -7,5 +7,12 @@ import org.jeecg.modules.demo.water.entity.WaterShop;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ShopVo extends WaterShop {
-    private String retailPrice;
+    /**
+     * 最低价格
+     */
+    private String retail;
+    /**
+     * 总库存
+     */
+    private String reserve;
 }

@@ -8,12 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController("/setting")
+@RestController
+@RequestMapping("/app/settings")
 public class SettingController {
     @Autowired
     IWaterSettingService settingService;
 
-    @RequestMapping("/showSettings")
+    @RequestMapping("showSettings")
     public ThinkResult showSetting() {
         WaterSetting waterSetting = settingService.list().get(0);
         JSONObject jsonObject = new JSONObject();

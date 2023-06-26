@@ -67,13 +67,21 @@ public class WaterShopController {
     //@AutoLog(value = "商品-分页列表查询")
     @ApiOperation(value = "商品-分页列表查询", notes = "商品-分页列表查询")
     @GetMapping(value = "/list")
-    public Result<IPage<WaterShop>> queryPageList(WaterShop waterShop,
-                                                  @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
-                                                  @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
-                                                  HttpServletRequest req) {
+    public Result<IPage> queryPageList(WaterShop waterShop,
+                                       @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo,
+                                       @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
+                                       HttpServletRequest req) {
         QueryWrapper<WaterShop> queryWrapper = QueryGenerator.initQueryWrapper(waterShop, req.getParameterMap());
         Page<WaterShop> page = new Page<WaterShop>(pageNo, pageSize);
         IPage<WaterShop> pageList = waterShopService.page(page, queryWrapper);
+//        List records = pageList.getRecords();
+//        for (int i = 0;i < records.size();i++){
+//            WaterShop record = (WaterShop)records.get(i);
+//            WaterShopPage waterShopPage = new WaterShopPage();
+//            BeanUtils.copyProperties(record,waterShopPage);
+//            waterShopPage.setWaterShopItemList(waterShopItemService.selectByMainId(record.getId()));
+//            records.set(i,waterShopPage);
+//        }
         return Result.OK(pageList);
     }
 
