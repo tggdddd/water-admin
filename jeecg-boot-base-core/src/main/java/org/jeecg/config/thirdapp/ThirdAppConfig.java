@@ -20,7 +20,10 @@ public class ThirdAppConfig {
      * 企业微信
      */
     public final static String WECHAT_ENTERPRISE = "WECHAT_ENTERPRISE";
-
+    /**
+     * 微信小程序
+     */
+    public final static String WECHAT_SMALL = "WECHAT_SMALL";
     /**
      * 是否启用 第三方App对接
      */
@@ -54,6 +57,13 @@ public class ThirdAppConfig {
      */
     public ThirdAppTypeItemVo getDingtalk() {
         return this.type.getDINGTALK();
+    }
+
+    /**
+     * 获取微信小程序配置
+     */
+    public ThirdAppTypeItemVo getWechatSmall() {
+        return this.type.getWECHAT_SMALL();
     }
 
     /**

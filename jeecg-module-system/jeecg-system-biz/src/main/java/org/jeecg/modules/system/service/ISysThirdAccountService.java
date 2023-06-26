@@ -31,6 +31,8 @@ public interface ISysThirdAccountService extends IService<SysThirdAccount> {
      */
     SysUser createUser(String phone, String thirdUserUuid);
 
+    SysUser createUser(String thirdUserUuid);
+
     /**
      * 根据本地userId查询数据
      *

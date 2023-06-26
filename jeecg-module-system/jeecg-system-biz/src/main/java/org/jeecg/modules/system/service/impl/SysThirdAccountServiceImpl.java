@@ -65,6 +65,38 @@ public class SysThirdAccountServiceImpl extends ServiceImpl<SysThirdAccountMappe
         sysThirdAccountMapper.update(sysThirdAccount, query);
     }
 
+    public SysUser createUser(String thirdUserUuid) {
+        //先查询第三方，获取登录方式
+        LambdaQueryWrapper<SysThirdAccount> query = new LambdaQueryWrapper<>();
+        query.eq(SysThirdAccount::getThirdUserUuid, thirdUserUuid);
+        SysThirdAccount account = sysThirdAccountMapper.selectOne(query);
+        //通过用户名查询数据库是否已存在
+        SysUser userByName = sysUserMapper.getUserByName(thirdUserUuid);
+        if (null != userByName) {
+            //如果账号存在的话，则自动加上一个时间戳
+            String format = DateUtils.yyyymmddhhmmss.get().format(new Date());
+            thirdUserUuid = thirdUserUuid + format;
+        }
+        SysUser user = new SysUser();
+        user.setActivitiSync(CommonConstant.ACT_SYNC_0);
+        user.setDelFlag(CommonConstant.DEL_FLAG_0);
+        user.setStatus(1);
+        user.setUsername(thirdUserUuid);
+        //设置初始密码
+        String salt = oConvertUtils.randomGen(8);
+        user.setSalt(salt);
+        String passwordEncode = PasswordUtil.encrypt(user.getUsername(), "123456", salt);
+        user.setPassword(passwordEncode);
+        user.setRealname(account.getRealname());
+        user.setAvatar(account.getAvatar());
+        String s = this.saveThirdUser(user);
+        //更新用户第三方账户表的userId
+        SysThirdAccount sysThirdAccount = new SysThirdAccount();
+        sysThirdAccount.setSysUserId(s);
+        sysThirdAccountMapper.update(sysThirdAccount, query);
+        return user;
+    }
+
     @Override
     public SysUser createUser(String phone, String thirdUserUuid) {
         //先查询第三方，获取登录方式

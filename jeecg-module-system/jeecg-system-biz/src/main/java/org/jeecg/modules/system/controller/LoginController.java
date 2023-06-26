@@ -68,6 +68,14 @@ public class LoginController {
     @Autowired
     private JeecgBaseConfig jeecgBaseConfig;
 
+    /**
+     * @param code: 微信code
+     * @Description: 小程序端登录
+     * @author: 肖润杰
+     * @date: 2023/6/25 21:49
+     * @Return:
+     */
+
     @ApiOperation("登录接口")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public Result<JSONObject> login(@RequestBody SysLoginModel sysLoginModel) {

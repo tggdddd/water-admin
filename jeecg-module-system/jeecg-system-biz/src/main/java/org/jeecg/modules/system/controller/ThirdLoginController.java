@@ -12,10 +12,7 @@ import me.zhyd.oauth.utils.AuthStateUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.util.JwtUtil;
-import org.jeecg.common.util.CommonUtils;
-import org.jeecg.common.util.PasswordUtil;
-import org.jeecg.common.util.RedisUtil;
-import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.common.util.*;
 import org.jeecg.config.thirdapp.ThirdAppConfig;
 import org.jeecg.config.thirdapp.ThirdAppTypeItemVo;
 import org.jeecg.modules.base.service.BaseCommonService;
@@ -28,6 +25,7 @@ import org.jeecg.modules.system.service.ISysUserService;
 import org.jeecg.modules.system.service.impl.ThirdAppDingtalkServiceImpl;
 import org.jeecg.modules.system.service.impl.ThirdAppWechatEnterpriseServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
@@ -65,6 +63,68 @@ public class ThirdLoginController {
     private ThirdAppWechatEnterpriseServiceImpl thirdAppWechatEnterpriseService;
     @Autowired
     private ThirdAppDingtalkServiceImpl thirdAppDingtalkService;
+
+
+    @ApiOperation("小程序登录")
+    @RequestMapping(value = "/loginByWeixin")
+    @ResponseBody
+    public ThinkResult login(@RequestBody JSONObject requestJSON, HttpServletResponse response) throws IOException {
+        String url = "https://api.weixin.qq.com/sns/jscode2session?grant_type=" + "authorization_code"
+                + "&js_code=" + requestJSON.get("code")
+                + "&secret=" + thirdAppConfig.getWechatSmall().getClientSecret()
+                + "&appid=" + thirdAppConfig.getWechatSmall().getClientId();
+        String responseBody = RestUtil.request(url, HttpMethod.POST, RestUtil.getHeaderApplicationJson(), null, null, String.class).getBody();
+        JSONObject body = JSONObject.parseObject(responseBody);
+        if (responseBody == null || body.getString("openid") == null) {
+            return ThinkResult.error("登录失败,openid失效");
+        }
+        String appid = body.getString("openid");
+        // 判断账号是否存在
+        LambdaQueryWrapper<SysThirdAccount> query = new LambdaQueryWrapper<SysThirdAccount>();
+        query.eq(SysThirdAccount::getThirdType, ThirdAppConfig.WECHAT_SMALL.toLowerCase());
+        query.and(q -> q.eq(SysThirdAccount::getThirdUserUuid, appid).or().eq(SysThirdAccount::getThirdUserId, appid));
+        List<SysThirdAccount> thridList = sysThirdAccountService.list(query);
+        SysThirdAccount user = null;
+        int is_new = 0;
+        if (thridList == null || thridList.size() == 0) {
+            JSONObject userInfo = requestJSON.getJSONObject("userInfo");
+            if (userInfo == null) {
+                return ThinkResult.error(101);
+            }
+            userInfo = userInfo.getJSONObject("userInfo");
+            //否则直接创建新账号
+            //构造第三方登录信息存储对象
+            ThirdLoginModel tlm = new ThirdLoginModel(ThirdAppConfig.WECHAT_SMALL.toLowerCase(), appid, userInfo.getString("nickName"), userInfo.getString("avatarUrl"));
+            //update-begin-author:wangshuai date:20201118 for:修改成查询第三方账户表
+            user = sysThirdAccountService.saveThirdUser(tlm);
+            is_new = 1;
+        } else {
+            //已存在 只设置用户名 不设置头像
+            user = thridList.get(0);
+        }
+        SysUser sysUser;
+        String token;
+        // 生成token
+        //update-begin-author:wangshuai date:20201118 for:从第三方登录查询是否存在用户id，不存在绑定手机号
+        if (oConvertUtils.isNotEmpty(user.getSysUserId())) {
+            String sysUserId = user.getSysUserId();
+            sysUser = sysUserService.getById(sysUserId);
+            token = saveToken(sysUser);
+        } else {
+            sysUser = sysThirdAccountService.createUser(appid);
+            token = saveToken(sysUser);
+        }
+        JSONObject jsonObject1 = new JSONObject();
+        jsonObject1.put("id", sysUser.getId());
+        jsonObject1.put("username", sysUser.getUsername());
+        jsonObject1.put("nickname", sysUser.getRealname());
+        jsonObject1.put("avatar", sysUser.getAvatar());
+        JSONObject resultJSON = new JSONObject();
+        resultJSON.put("token", token);
+        resultJSON.put("is_new", is_new);
+        resultJSON.put("userInfo", jsonObject1);
+        return ThinkResult.ok(resultJSON);
+    }
 
     @RequestMapping("/render/{source}")
     public void render(@PathVariable("source") String source, HttpServletResponse response) throws IOException {

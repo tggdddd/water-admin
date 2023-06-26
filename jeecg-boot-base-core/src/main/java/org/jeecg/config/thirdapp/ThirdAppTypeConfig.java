@@ -23,4 +23,8 @@ public class ThirdAppTypeConfig {
      */
     private ThirdAppTypeItemVo DINGTALK;
 
+    /**
+     * 微信小程序配置
+     */
+    private ThirdAppTypeItemVo WECHAT_SMALL;
 }
