@@ -14,12 +14,12 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
 /**
- * @Description: 实际商品
+ * @Description: 售卖商品
  * @Author: jeecg-boot
  * @Date: 2023-06-26
  * @Version: V1.0
  */
-@ApiModel(value = "water_shop_item对象", description = "实际商品")
+@ApiModel(value = "water_shop_item对象", description = "售卖商品")
 @Data
 @TableName("water_shop_item")
 public class WaterShopItem implements Serializable {
@@ -75,7 +75,7 @@ public class WaterShopItem implements Serializable {
     /**
      * 型号/规格
      */
-    @Excel(name = "型号/规格", width = 15)
+    @Excel(name = "型号/规格", width = 15, dictTable = "water_shop_model", dicText = "model", dicCode = "id")
     @ApiModelProperty(value = "型号/规格")
     private java.lang.String model;
     /**
@@ -121,11 +121,6 @@ public class WaterShopItem implements Serializable {
     private transient java.lang.String imageString;
 
     private byte[] image;
-    /**
-     * 所属商品
-     */
-    @ApiModelProperty(value = "所属商品")
-    private java.lang.String fromId;
 
     public byte[] getImage() {
         if (imageString == null) {
@@ -150,4 +145,10 @@ public class WaterShopItem implements Serializable {
         }
         return "";
     }
+
+    /**
+     * 所属商品
+     */
+    @ApiModelProperty(value = "所属商品")
+    private java.lang.String fromId;
 }

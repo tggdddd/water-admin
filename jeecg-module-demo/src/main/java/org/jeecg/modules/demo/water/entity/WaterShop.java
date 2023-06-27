@@ -93,44 +93,6 @@ public class WaterShop implements Serializable {
     private transient java.lang.String imageString;
 
     private byte[] image;
-    /**
-     * 详情图片
-     */
-    @Excel(name = "详情图片", width = 15)
-    private transient java.lang.String imagesString;
-    private byte[] images;
-    /**
-     * 单位
-     */
-    @Excel(name = "单位", width = 15)
-    @ApiModelProperty(value = "单位")
-    private java.lang.String unit;
-    /**
-     * 型号/规格
-     */
-    @Excel(name = "型号/规格", width = 15, dicCode = "model_type")
-    @Dict(dicCode = "model_type")
-    @ApiModelProperty(value = "型号/规格")
-    private java.lang.String model;
-    /**
-     * 是否启用
-     */
-    @Excel(name = "是否启用", width = 15, dicCode = "yes_or_no")
-    @Dict(dicCode = "yes_or_no")
-    @ApiModelProperty(value = "是否启用")
-    private java.lang.String status;
-    /**
-     * 逻辑删除
-     */
-    @Excel(name = "逻辑删除", width = 15)
-    @ApiModelProperty(value = "逻辑删除")
-    private java.lang.String isDelete;
-    /**
-     * 销量
-     */
-    @Excel(name = "销量", width = 15)
-    @ApiModelProperty(value = "销量")
-    private java.lang.String sale;
 
     public byte[] getImage() {
         if (imageString == null) {
@@ -156,6 +118,14 @@ public class WaterShop implements Serializable {
         return "";
     }
 
+    /**
+     * 详情图片
+     */
+    @Excel(name = "详情图片", width = 15)
+    private transient java.lang.String imagesString;
+
+    private byte[] images;
+
     public byte[] getImages() {
         if (imagesString == null) {
             return null;
@@ -179,4 +149,30 @@ public class WaterShop implements Serializable {
         }
         return "";
     }
+
+    /**
+     * 单位
+     */
+    @Excel(name = "单位", width = 15)
+    @ApiModelProperty(value = "单位")
+    private java.lang.String unit;
+    /**
+     * 是否启用
+     */
+    @Excel(name = "是否启用", width = 15, dicCode = "yes_or_no")
+    @Dict(dicCode = "yes_or_no")
+    @ApiModelProperty(value = "是否启用")
+    private java.lang.String status;
+    /**
+     * 逻辑删除
+     */
+    @Excel(name = "逻辑删除", width = 15)
+    @ApiModelProperty(value = "逻辑删除")
+    private java.lang.String isDelete;
+    /**
+     * 销量
+     */
+    @Excel(name = "销量", width = 15)
+    @ApiModelProperty(value = "销量")
+    private java.lang.String sale;
 }

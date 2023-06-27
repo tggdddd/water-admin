@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.jeecg.common.aspect.annotation.Dict;
 import org.jeecg.modules.demo.water.entity.WaterShopItem;
+import org.jeecg.modules.demo.water.entity.WaterShopModel;
 import org.jeecgframework.poi.excel.annotation.Excel;
 import org.jeecgframework.poi.excel.annotation.ExcelCollection;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -100,13 +101,6 @@ public class WaterShopPage {
     @ApiModelProperty(value = "单位")
     private java.lang.String unit;
     /**
-     * 型号/规格
-     */
-    @Excel(name = "型号/规格", width = 15, dicCode = "model_type")
-    @Dict(dicCode = "model_type")
-    @ApiModelProperty(value = "型号/规格")
-    private java.lang.String model;
-    /**
      * 是否启用
      */
     @Excel(name = "是否启用", width = 15, dicCode = "yes_or_no")
@@ -126,8 +120,11 @@ public class WaterShopPage {
     @ApiModelProperty(value = "销量")
     private java.lang.String sale;
 
-    @ExcelCollection(name = "实际商品")
-    @ApiModelProperty(value = "实际商品")
+    @ExcelCollection(name = "规格")
+    @ApiModelProperty(value = "规格")
+    private List<WaterShopModel> waterShopModelList;
+    @ExcelCollection(name = "售卖商品")
+    @ApiModelProperty(value = "售卖商品")
     private List<WaterShopItem> waterShopItemList;
 
 }

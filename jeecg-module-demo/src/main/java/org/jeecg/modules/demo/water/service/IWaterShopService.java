@@ -3,6 +3,7 @@ package org.jeecg.modules.demo.water.service;
 import com.github.yulichang.base.MPJBaseService;
 import org.jeecg.modules.demo.water.entity.WaterShop;
 import org.jeecg.modules.demo.water.entity.WaterShopItem;
+import org.jeecg.modules.demo.water.entity.WaterShopModel;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -20,17 +21,19 @@ public interface IWaterShopService extends MPJBaseService<WaterShop> {
      * 添加一对多
      *
      * @param waterShop
+     * @param waterShopModelList
      * @param waterShopItemList
      */
-    public void saveMain(WaterShop waterShop, List<WaterShopItem> waterShopItemList);
+    public void saveMain(WaterShop waterShop, List<WaterShopModel> waterShopModelList, List<WaterShopItem> waterShopItemList);
 
     /**
      * 修改一对多
      *
      * @param waterShop
+     * @param waterShopModelList
      * @param waterShopItemList
      */
-    public void updateMain(WaterShop waterShop, List<WaterShopItem> waterShopItemList);
+    public void updateMain(WaterShop waterShop, List<WaterShopModel> waterShopModelList, List<WaterShopItem> waterShopItemList);
 
     /**
      * 删除一对多

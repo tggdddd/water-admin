@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * @Description: 实际商品
+ * @Description: 售卖商品
  * @Author: jeecg-boot
  * @Date: 2023-06-26
  * @Version: V1.0
