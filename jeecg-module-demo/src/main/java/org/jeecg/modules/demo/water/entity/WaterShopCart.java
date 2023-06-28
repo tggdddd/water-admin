@@ -70,7 +70,7 @@ public class WaterShopCart implements Serializable {
     @ApiModelProperty(value = "用户id")
     private java.lang.String userId;
     /**
-     * 商品id
+     * 商品id  item
      */
     @Excel(name = "商品id", width = 15)
     @ApiModelProperty(value = "商品id")

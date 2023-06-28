@@ -10,7 +10,9 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.aspect.annotation.AutoLog;
+import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.common.system.vo.LoginUser;
+import org.jeecg.modules.base.ThinkResult;
 import org.jeecg.modules.demo.water.entity.WaterSearchRecord;
 import org.jeecg.modules.demo.water.entity.WaterShop;
 import org.jeecg.modules.demo.water.entity.WaterShopItem;
@@ -18,13 +20,13 @@ import org.jeecg.modules.demo.water.service.IWaterSearchRecordService;
 import org.jeecg.modules.demo.water.service.IWaterShopService;
 import org.jeecg.modules.demo.water.vo.DictEnum;
 import org.jeecg.modules.demo.water.vo.ShopVo;
-import org.jeecg.modules.demo.water.vo.ThinkResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -41,16 +43,16 @@ public class SearchController {
      * 搜索词获取
      */
     @RequestMapping(value = "index")
-    public ThinkResult queryPageList() {
-        LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+    public ThinkResult queryPageList(HttpServletRequest request) {
+        String username = JwtUtil.getUserNameByToken(request);
         JSONObject result = new JSONObject();
         Page<WaterSearchRecord> page = new Page<WaterSearchRecord>(1, 10);
 //            获取用户搜索词
-        if (sysUser != null) {
+        if (username != null) {
             LambdaQueryWrapper<WaterSearchRecord> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper
                     .select(WaterSearchRecord::getSearchWord)
-                    .eq(WaterSearchRecord::getCreateBy, sysUser.getUsername())
+                    .eq(WaterSearchRecord::getCreateBy, username)
                     .orderByDesc(WaterSearchRecord::getCreateTime);
             Page<WaterSearchRecord> page1 = waterSearchRecordService.page(page, queryWrapper);
             result.put("historyKeywordList", page1.getRecords());
@@ -129,11 +131,11 @@ public class SearchController {
      * 清空历史搜索记录
      */
     @RequestMapping("clear")
-    public ThinkResult clear() {
-        LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-        if (sysUser != null) {
+    public ThinkResult clear(HttpServletRequest request) {
+        String username = JwtUtil.getUserNameByToken(request);
+        if (username != null) {
             LambdaQueryWrapper<WaterSearchRecord> wrapper = new LambdaQueryWrapper<WaterSearchRecord>()
-                    .eq(WaterSearchRecord::getCreateBy, sysUser.getUsername());
+                    .eq(WaterSearchRecord::getCreateBy, username);
             waterSearchRecordService.remove(wrapper);
         }
         return ThinkResult.ok(null);

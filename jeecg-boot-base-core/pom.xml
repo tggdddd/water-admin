@@ -37,9 +37,16 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+
     </repositories>
 
     <dependencies>
+        <!--        微信支付-->
+        <dependency>
+            <groupId>com.github.wechatpay-apiv3</groupId>
+            <artifactId>wechatpay-java</artifactId>
+            <version>0.2.9</version>
+        </dependency>
         <!--jeecg-tools-->
         <dependency>
             <groupId>org.jeecgframework.boot</groupId>

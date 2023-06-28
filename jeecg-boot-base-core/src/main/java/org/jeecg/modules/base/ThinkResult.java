@@ -1,4 +1,4 @@
-package org.jeecg.modules.demo.water.vo;
+package org.jeecg.modules.base;
 
 import lombok.Data;
 
@@ -33,5 +33,9 @@ public class ThinkResult {
 
     public static ThinkResult error(String msg) {
         return new ThinkResult(1000, msg, null);
+    }
+
+    public static ThinkResult notLogin() {
+        return new ThinkResult(401, "未登录", null);
     }
 }

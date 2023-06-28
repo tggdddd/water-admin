@@ -1,6 +1,7 @@
 package org.jeecg.modules.demo.water.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -24,7 +25,8 @@ import java.io.UnsupportedEncodingException;
 @TableName("water_shop_item")
 public class WaterShopItem implements Serializable {
     private static final long serialVersionUID = 1L;
-
+    @TableField(exist = false)
+    private String modelName;
     /**
      * 主键
      */

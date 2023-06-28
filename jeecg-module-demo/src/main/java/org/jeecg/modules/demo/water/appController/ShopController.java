@@ -2,20 +2,23 @@ package org.jeecg.modules.demo.water.appController;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import org.apache.shiro.SecurityUtils;
-import org.jeecg.common.system.vo.LoginUser;
-import org.jeecg.modules.demo.water.entity.WaterShop;
-import org.jeecg.modules.demo.water.entity.WaterShopItem;
-import org.jeecg.modules.demo.water.entity.WaterShopModel;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import org.jeecg.common.system.util.JwtUtil;
+import org.jeecg.modules.base.ThinkResult;
+import org.jeecg.modules.demo.water.entity.*;
 import org.jeecg.modules.demo.water.po.CartPo;
+import org.jeecg.modules.demo.water.service.IWaterShopCartService;
 import org.jeecg.modules.demo.water.service.IWaterShopItemService;
 import org.jeecg.modules.demo.water.service.IWaterShopModelService;
 import org.jeecg.modules.demo.water.service.IWaterShopService;
+import org.jeecg.modules.demo.water.vo.CartVo;
 import org.jeecg.modules.demo.water.vo.DictEnum;
-import org.jeecg.modules.demo.water.vo.ThinkResult;
+import org.jeecg.modules.demo.water.vo.ShopVo;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +32,8 @@ public class ShopController {
     IWaterShopItemService itemService;
     @Autowired
     IWaterShopModelService modelService;
+    @Autowired
+    IWaterShopCartService cartService;
 
     /**
      * 统计在售商品数
@@ -46,26 +51,44 @@ public class ShopController {
      */
     @GetMapping("detail")
     public ThinkResult shopDetail(@RequestParam("id") String id) {
-        WaterShop shop = shopService.getById(id);
-        if (DictEnum.Disable.getValue().equals(shop.getStatus())) {
-            return ThinkResult.error("该商品不存在或已下架");
-        }
+        MPJLambdaWrapper<WaterShop> shopLambdaQueryWrapper = new MPJLambdaWrapper<>();
+        shopLambdaQueryWrapper.eq(WaterShop::getId, id)
+                .selectAll(WaterShop.class)
+                .leftJoin(WaterShopItem.class, WaterShopItem::getFromId, WaterShop::getId)
+                .select(WaterShopItem::getFromId)
+                .selectCount(WaterShopItem::getReserve)
+                .selectMin(WaterShopItem::getRetail)
+                .eq(WaterShopItem::getStatus, DictEnum.Enable.getValue())
+                .groupBy(WaterShopItem::getFromId);
+        ShopVo shop = shopService.selectJoinOne(ShopVo.class, shopLambdaQueryWrapper);
+//        if (DictEnum.Disable.getValue().equals(shop.getStatus())) {
+//            return ThinkResult.error("该商品不存在或已下架");
+//        }
+        List<WaterShopModel> models = modelService.selectByMainId(id);
         JSONObject result = new JSONObject();
         int countItems = 0;
-        List<WaterShopItem> waterShopItems = itemService.selectByMainId(id);
+        List<WaterShopItem> items = itemService.selectByMainId(id);
         ArrayList<WaterShopItem> canUse = new ArrayList<>();
-        for (WaterShopItem waterShopItem : waterShopItems) {
+        for (WaterShopItem waterShopItem : items) {
             if (!Objects.equals(waterShopItem.getStatus(), DictEnum.Enable.getValue())) {
                 continue;
             }
+            String modelName = "";
+            for (WaterShopModel model : models) {
+                if (model.getId().equals(waterShopItem.getModel())) {
+                    modelName = model.getModel();
+                    model.setNumber(model.getNumber() + Integer.parseInt(waterShopItem.getReserve()));
+                    break;
+                }
+            }
+            waterShopItem.setModelName(modelName);
             canUse.add(waterShopItem);
             countItems += Integer.parseInt(waterShopItem.getReserve());
         }
-        List<WaterShopModel> waterShopModels = modelService.selectByMainId(id);
         result.put("info", shop);
         result.put("count", countItems);
         result.put("products", canUse);
-        result.put("model", waterShopModels);
+        result.put("model", models);
         return ThinkResult.ok(result);
     }
 
@@ -73,127 +96,141 @@ public class ShopController {
      * 添加商品到购物车
      */
     @PostMapping("add")
-    public ThinkResult addToCart(@RequestBody CartPo cartPo) {
-        LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-        if (sysUser != null) {
-            return ThinkResult.error("未登录");
+    public ThinkResult addToCart(HttpServletRequest request, @RequestBody CartPo cartPo) {
+//        检查是否登录
+        String username = JwtUtil.getUserNameByToken(request);
+        if (username == null) {
+            return ThinkResult.notLogin();
         }
+        //   type  0：正常加入购物车，1:立即购买，2:再来一单
+        if (cartPo.getAddType() == 0) {
+            return addToCartR(username, cartPo);
+        } else if (cartPo.getAddType() == 1) {
+            return fastBought(username, cartPo, true);
+        } else if (cartPo.getAddType() == 2) {
+            // TODO: 2023/6/27  
+        }
+        return ThinkResult.error("错误的标识");
+    }
+
+
+    /**
+     * 支付该商品的所有购物
+     */
+    public ThinkResult fastBought(String username, CartPo cartPo, boolean onlyShop) {
+//        先添加到购物车
+        ThinkResult thinkResult = addToCartR(username, cartPo);
+        if (thinkResult.getErrno() != 0) {
+            return thinkResult;
+        }
+//        获取用户的购物车
+        MPJLambdaWrapper<WaterShopCart> carWrapper = new MPJLambdaWrapper<>(WaterShopCart.class)
+                .selectAll(WaterShopCart.class);
+        carWrapper.eq(WaterShopCart::getUserId, username);
+        if (onlyShop) {
+            carWrapper.inSql(true,
+                    WaterShopCart::getShopId,
+                    "select id from water_shop_item where from_id ='" + cartPo.getGoodsId() + "'");
+        }
+        List<WaterShopCart> list = cartService.list(carWrapper);
+//        创建订单
+        WaterOrder waterOrder = cartService.payOrUpdate(list, username);
+        if (waterOrder == null) {
+            return ThinkResult.error("商品库存不足，已调整购物车数量");
+        }
+        return ThinkResult.ok(waterOrder);
+    }
+
+    /**
+     * 添加到购物车
+     */
+    private ThinkResult addToCartR(String username, CartPo cartPo) {
+        ThinkResult thinkResult = checkCart(cartPo);
+        if (thinkResult.getErrno() != 0) {
+            return thinkResult;
+        }
+        // 添加到购物车
+        LambdaQueryWrapper<WaterShopCart> cartQueryWrapper = new LambdaQueryWrapper<>();
+        cartQueryWrapper.eq(WaterShopCart::getShopId, cartPo.getProductId())
+                .eq(WaterShopCart::getUserId, username);
+        WaterShopCart one = cartService.getOne(cartQueryWrapper);
+        if (one == null) {
+            WaterShopCart waterShopCart = new WaterShopCart();
+            waterShopCart.setShopId(cartPo.getProductId());
+            waterShopCart.setUserId(username);
+            waterShopCart.setNumber(cartPo.getNumber());
+            cartService.save(waterShopCart);
+        } else {
+            // 如果已经存在购物车中，则数量增加
+            int total = Integer.parseInt(cartPo.getNumber()) + Integer.parseInt(one.getNumber());
+            one.setNumber(String.valueOf(total));
+            cartService.updateById(one);
+        }
+        return ThinkResult.ok("添加成功");
+    }
+
+    /**
+     * 检查购物车是否能够购买
+     */
+    public ThinkResult checkCart(CartPo cartPo) {
         WaterShop good = shopService.getById(cartPo.getGoodsId());
-        if (good == null || good.getStatus().equals(DictEnum.Disable.getValue())) {
+        WaterShopItem product = itemService.getById(cartPo.getProductId());
+        if (good == null || good.getStatus().equals(DictEnum.Disable.getValue())
+                || product == null || product.getStatus().equals(DictEnum.Disable.getValue())) {
             return ThinkResult.error("商品已下架");
         }
-//        const currentTime = parseInt(new Date().getTime() / 1000);
-//
-//        // 取得规格的信息,判断规格库存
-//        // const productInfo = await this.model('product').where({goods_id: goodsId, id: productId}).find();
-//        const productInfo = await this.model('product').where({
-//                id: productId
-//        }).find();
-//        // let productId = productInfo.id;
-//        if (think.isEmpty(productInfo) || productInfo.goods_number < number) {
-//            return this.fail(400, '库存不足');
-//        }
-//        // 判断购物车中是否存在此规格商品
-//        const cartInfo = await this.model('cart').where({
-//                user_id: userId,
-//                product_id: productId,
-//                is_delete: 0
-//        }).find();
-//        let retail_price = productInfo.retail_price;
-//        if (addType == 1) {
-//            await this.model('cart').where({
-//                    is_delete: 0,
-//                    user_id: userId
-//            }).update({
-//                    checked: 0
-//            });
-//            let goodsSepcifitionValue = [];
-//            if (!think.isEmpty(productInfo.goods_specification_ids)) {
-//                goodsSepcifitionValue = await this.model('goods_specification').where({
-//                        goods_id: productInfo.goods_id,
-//                        is_delete: 0,
-//                        id: {
-//                    'in': productInfo.goods_specification_ids.split('_')
-//                }
-//                }).getField('value');
-//            }
-//            // 添加到购物车
-//            const cartData = {
-//                    goods_id: productInfo.goods_id,
-//                    product_id: productId,
-//                    goods_sn: productInfo.goods_sn,
-//                    goods_name: goodsInfo.name,
-//                    goods_aka: productInfo.goods_name,
-//                    goods_weight: productInfo.goods_weight,
-//                    freight_template_id: goodsInfo.freight_template_id,
-//                    list_pic_url: goodsInfo.list_pic_url,
-//                    number: number,
-//                    user_id: userId,
-//                    retail_price: retail_price,
-//                    add_price: retail_price,
-//                    goods_specifition_name_value: goodsSepcifitionValue.join(';'),
-//                    goods_specifition_ids: productInfo.goods_specification_ids,
-//                    checked: 1,
-//                    add_time: currentTime,
-//                    is_fast: 1
-//            };
-//            await this.model('cart').add(cartData);
-//            return this.success(await this.getCart(1));
-//        } else {
-//            if (think.isEmpty(cartInfo)) {
-//                // 添加操作
-//                // 添加规格名和值
-//                let goodsSepcifitionValue = [];
-//                if (!think.isEmpty(productInfo.goods_specification_ids)) {
-//                    goodsSepcifitionValue = await this.model('goods_specification').where({
-//                            goods_id: productInfo.goods_id,
-//                            is_delete: 0,
-//                            id: {
-//                        'in': productInfo.goods_specification_ids.split('_')
-//                    }
-//                    }).getField('value');
-//                }
-//                // 添加到购物车
-//                const cartData = {
-//                        goods_id: productInfo.goods_id,
-//                        product_id: productId,
-//                        goods_sn: productInfo.goods_sn,
-//                        goods_name: goodsInfo.name,
-//                        goods_aka: productInfo.goods_name,
-//                        goods_weight: productInfo.goods_weight,
-//                        freight_template_id: goodsInfo.freight_template_id,
-//                        list_pic_url: goodsInfo.list_pic_url,
-//                        number: number,
-//                        user_id: userId,
-//                        retail_price: retail_price,
-//                        add_price: retail_price,
-//                        goods_specifition_name_value: goodsSepcifitionValue.join(';'),
-//                        goods_specifition_ids: productInfo.goods_specification_ids,
-//                        checked: 1,
-//                        add_time: currentTime
-//                };
-//                await this.model('cart').add(cartData);
-//            } else {
-//                // 如果已经存在购物车中，则数量增加
-//                if (productInfo.goods_number < (number + cartInfo.number)) {
-//                    return this.fail(400, '库存都不够啦');
-//                }
-//                await this.model('cart').where({
-//                        user_id: userId,
-//                        product_id: productId,
-//                        is_delete: 0,
-//                        id: cartInfo.id
-//                }).update({
-//                        retail_price: retail_price
-//                });
-//                await this.model('cart').where({
-//                        user_id: userId,
-//                        product_id: productId,
-//                        is_delete: 0,
-//                        id: cartInfo.id
-//                }).increment('number', number);
-//            }
-//            return this.success(await this.getCart(0));
-        return null;
+        int i = Integer.parseInt(product.getReserve());
+        if (i <= 0 || i < Integer.parseInt(cartPo.getNumber())) {
+            return ThinkResult.error("库存都不够啦");
+        }
+        return ThinkResult.ok(null);
+    }
+
+    /**
+     * 商品页面获得购物车信息
+     */
+    @RequestMapping("getCart")
+    public ThinkResult getCart(HttpServletRequest request) {
+        // TODO: 2023/6/27
+        String username = JwtUtil.getUserNameByToken(request);
+        if (username == null) {
+            return ThinkResult.notLogin();
+        }
+        LambdaQueryWrapper<WaterShopCart> cartQueryWrapper = new LambdaQueryWrapper<>();
+        cartQueryWrapper.eq(WaterShopCart::getUserId, username);
+        List<WaterShopCart> list = cartService.list();
+        ArrayList<Object> resultList = new ArrayList<>(list.size());
+        // 获取购物车统计信息
+        int goodsCount = 0;
+        int goodsAmount = 0;
+//        let checkedGoodsCount = 0;
+//        let checkedGoodsAmount = 0;
+        int numberChange = 0;
+        for (WaterShopCart waterShopCart : list) {
+            WaterShopItem item = itemService.getById(waterShopCart.getShopId());
+//            商品不存在
+            if (Objects.equals(item.getStatus(), DictEnum.Disable.getValue()) || Objects.equals(item.getIsDelete(), "1")) {
+                cartService.removeById(waterShopCart.getId());
+            }
+            CartVo cartVo = new CartVo();
+            BeanUtils.copyProperties(item, cartVo);
+//            数量不能多于库存
+            cartVo.setNumber(Math.min(Integer.parseInt(item.getReserve()), Integer.parseInt(waterShopCart.getNumber())));
+            if (cartVo.getNumber() != Integer.parseInt(waterShopCart.getNumber())) {
+//                超过库存
+                numberChange = 1;
+            }
+            goodsCount += cartVo.getNumber();
+            goodsAmount += cartVo.getNumber() * Integer.parseInt(cartVo.getRetail());
+            resultList.add(cartVo);
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("cartList", resultList);
+        jsonObject.put("goodAmount", goodsAmount);
+        jsonObject.put("goodsCount", goodsCount);
+        jsonObject.put("checkedGoodsCount", goodsAmount);
+        jsonObject.put("checkedGoodsAmount", goodsCount);
+        jsonObject.put("numberChange", numberChange);
+        return ThinkResult.ok(jsonObject);
     }
 }

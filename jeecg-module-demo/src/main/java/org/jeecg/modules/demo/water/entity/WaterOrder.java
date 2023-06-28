@@ -14,6 +14,7 @@ import org.jeecgframework.poi.excel.annotation.Excel;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * @Description: 订单
@@ -46,7 +47,7 @@ public class WaterOrder implements Serializable {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "创建日期")
-    private java.util.Date createTime;
+    private LocalDateTime createTime;
     /**
      * 更新人
      */
@@ -58,7 +59,7 @@ public class WaterOrder implements Serializable {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "更新日期")
-    private java.util.Date updateTime;
+    private LocalDateTime updateTime;
     /**
      * 所属部门
      */
@@ -84,7 +85,7 @@ public class WaterOrder implements Serializable {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "创建时间")
-    private java.util.Date startTime;
+    private LocalDateTime startTime;
     /**
      * 结束时间
      */
@@ -92,7 +93,7 @@ public class WaterOrder implements Serializable {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "结束时间")
-    private java.util.Date endTime;
+    private LocalDateTime endTime;
     /**
      * 地址
      */

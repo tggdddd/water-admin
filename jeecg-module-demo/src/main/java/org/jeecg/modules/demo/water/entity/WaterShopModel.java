@@ -1,6 +1,7 @@
 package org.jeecg.modules.demo.water.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -70,4 +71,6 @@ public class WaterShopModel implements Serializable {
     @Excel(name = "型号/规格", width = 15)
     @ApiModelProperty(value = "型号/规格")
     private java.lang.String model;
+    @TableField(exist = false)
+    private Integer number = 0;
 }

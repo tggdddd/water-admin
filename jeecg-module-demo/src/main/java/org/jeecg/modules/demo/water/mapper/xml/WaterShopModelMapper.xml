@@ -6,7 +6,7 @@
         FROM water_shop_model
         where shop_id = #{mainId}
     </delete>
-    <select id="selectByMainId" resultType="org.jeecg.modules.demo.water.entity.WaterShopItem">
+    <select id="selectByMainId" resultType="org.jeecg.modules.demo.water.entity.WaterShopModel">
         select *
         from water_shop_model
         where shop_id = #{mainId}

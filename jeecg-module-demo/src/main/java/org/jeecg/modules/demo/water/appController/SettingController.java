@@ -1,9 +1,9 @@
 package org.jeecg.modules.demo.water.appController;
 
 import com.alibaba.fastjson.JSONObject;
+import org.jeecg.modules.base.ThinkResult;
 import org.jeecg.modules.demo.water.entity.WaterSetting;
 import org.jeecg.modules.demo.water.service.IWaterSettingService;
-import org.jeecg.modules.demo.water.vo.ThinkResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
