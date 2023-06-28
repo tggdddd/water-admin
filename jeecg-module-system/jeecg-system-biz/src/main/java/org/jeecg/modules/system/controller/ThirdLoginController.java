@@ -109,11 +109,13 @@ public class ThirdLoginController {
         if (oConvertUtils.isNotEmpty(user.getSysUserId())) {
             String sysUserId = user.getSysUserId();
             sysUser = sysUserService.getById(sysUserId);
-            token = saveToken(sysUser);
         } else {
             sysUser = sysThirdAccountService.createUser(appid);
-            token = saveToken(sysUser);
         }
+        token = JwtUtil.sign(sysUser.getUsername(), sysUser.getPassword());
+        // 设置token缓存有效时间
+        redisUtil.set(CommonConstant.PREFIX_USER_TOKEN + token, token);
+        redisUtil.expire(CommonConstant.PREFIX_USER_TOKEN + token, JwtUtil.EXPIRE_TIME * 2 / 1000);
         JSONObject jsonObject1 = new JSONObject();
         jsonObject1.put("id", sysUser.getId());
         jsonObject1.put("username", sysUser.getUsername());
