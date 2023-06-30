@@ -21,4 +21,9 @@ public interface IWaterShopCartService extends MPJBaseService<WaterShopCart> {
      * 否则 生成订单
      */
     WaterOrder payOrUpdate(List<WaterShopCart> jsonObjects, String username);
+
+    /**
+     * 获取购物车的可购买商品 数量
+     */
+    long getCardCount(String username);
 }

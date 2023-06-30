@@ -23,6 +23,10 @@ public class ThinkResult {
         return new ThinkResult(0, "", data);
     }
 
+    public static ThinkResult ok() {
+        return ok(null);
+    }
+
     public static ThinkResult error() {
         return new ThinkResult(1000, "no permission", null);
     }

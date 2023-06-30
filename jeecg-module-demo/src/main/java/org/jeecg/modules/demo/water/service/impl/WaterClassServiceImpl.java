@@ -19,7 +19,7 @@ import java.util.List;
 /**
  * @Description: 分类
  * @Author: jeecg-boot
- * @Date: 2023-06-26
+ * @Date: 2023-06-29
  * @Version: V1.0
  */
 @Service
@@ -178,7 +178,6 @@ public class WaterClassServiceImpl extends ServiceImpl<WaterClassMapper, WaterCl
 
     /**
      * 根据id查询所有子节点id
-     *
      * @param ids
      * @return
      */

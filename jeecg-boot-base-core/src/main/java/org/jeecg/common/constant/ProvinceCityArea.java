@@ -51,7 +51,7 @@ public class ProvinceCityArea {
      * @param texts 文本数组，省，市，区
      * @return 返回 省市区的code
      */
-    public String[] getCode(String[] texts) {
+    public String[] getCode(String... texts) {
         if (texts == null || texts.length == 0) {
             return null;
         }

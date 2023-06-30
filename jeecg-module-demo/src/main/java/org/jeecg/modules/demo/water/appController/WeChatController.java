@@ -23,6 +23,6 @@ public class WeChatController {
     @PostMapping("callback")
     public void getRecord(@RequestBody WeChatCallBack chatCallBack) {
 
-
+    /**支付订单*/
     }
 }

@@ -2,13 +2,13 @@ package org.jeecg.modules.demo.water.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.jeecg.common.aspect.annotation.Dict;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 import org.jeecgframework.poi.excel.annotation.Excel;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -16,15 +16,17 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
 /**
- * @Description: 商品
+ * @Description: 轮播图
  * @Author: jeecg-boot
- * @Date: 2023-06-26
+ * @Date: 2023-06-29
  * @Version: V1.0
  */
-@ApiModel(value = "water_shop对象", description = "商品")
 @Data
-@TableName("water_shop")
-public class WaterShop implements Serializable {
+@TableName("water_ad")
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
+@ApiModel(value = "water_ad对象", description = "轮播图")
+public class WaterAd implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -63,30 +65,11 @@ public class WaterShop implements Serializable {
     @ApiModelProperty(value = "所属部门")
     private java.lang.String sysOrgCode;
     /**
-     * 分类
+     * 图片名
      */
-    @Excel(name = "分类", width = 15, dictTable = "water_class", dicText = "name", dicCode = "id")
-    @Dict(dictTable = "water_class", dicText = "name", dicCode = "id")
-    @ApiModelProperty(value = "分类")
-    private java.lang.String typeId;
-    /**
-     * 名称
-     */
-    @Excel(name = "名称", width = 15)
-    @ApiModelProperty(value = "名称")
+    @Excel(name = "图片名", width = 15)
+    @ApiModelProperty(value = "图片名")
     private java.lang.String name;
-    /**
-     * 简介
-     */
-    @Excel(name = "简介", width = 15)
-    @ApiModelProperty(value = "简介")
-    private java.lang.String biref;
-    /**
-     * 详情
-     */
-    @Excel(name = "详情", width = 15)
-    @ApiModelProperty(value = "详情")
-    private java.lang.String detail;
     /**
      * 图片
      */
@@ -94,6 +77,24 @@ public class WaterShop implements Serializable {
     private transient java.lang.String imageString;
 
     private byte[] image;
+    /**
+     * 排序
+     */
+    @Excel(name = "排序", width = 15)
+    @ApiModelProperty(value = "排序")
+    private java.lang.Integer sort;
+    /**
+     * 点击链接
+     */
+    @Excel(name = "点击链接", width = 15)
+    @ApiModelProperty(value = "点击链接")
+    private java.lang.String url;
+    /**
+     * 图片描述
+     */
+    @Excel(name = "图片描述", width = 15)
+    @ApiModelProperty(value = "图片描述")
+    private java.lang.String description;
 
     public byte[] getImage() {
         if (imageString == null) {
@@ -118,63 +119,4 @@ public class WaterShop implements Serializable {
         }
         return "";
     }
-
-    /**
-     * 详情图片
-     */
-    @Excel(name = "详情图片", width = 15)
-    private transient java.lang.String imagesString;
-
-    private byte[] images;
-
-    public byte[] getImages() {
-        if (imagesString == null) {
-            return null;
-        }
-        try {
-            return imagesString.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public String getImagesString() {
-        if (images == null || images.length == 0) {
-            return "";
-        }
-        try {
-            return new String(images, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
-    /**
-     * 单位
-     */
-    @Excel(name = "单位", width = 15)
-    @ApiModelProperty(value = "单位")
-    private java.lang.String unit;
-    /**
-     * 是否启用
-     */
-    @Excel(name = "是否启用", width = 15, dicCode = "yes_or_no")
-    @Dict(dicCode = "yes_or_no")
-    @ApiModelProperty(value = "是否启用")
-    private java.lang.String status;
-    /**
-     * 逻辑删除
-     */
-    @Excel(name = "逻辑删除", width = 15)
-    @ApiModelProperty(value = "逻辑删除")
-    @TableLogic
-    private java.lang.String isDelete;
-    /**
-     * 销量
-     */
-    @Excel(name = "销量", width = 15)
-    @ApiModelProperty(value = "销量")
-    private java.lang.String sale;
 }

@@ -2,6 +2,7 @@ package org.jeecg.modules.demo.water.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
@@ -29,6 +30,10 @@ import java.time.LocalDateTime;
 @ApiModel(value = "water_order对象", description = "订单")
 public class WaterOrder implements Serializable {
     private static final long serialVersionUID = 1L;
+    /**
+     * 收货人
+     */
+    private String name;
 
     /**
      * 主键
@@ -156,5 +161,6 @@ public class WaterOrder implements Serializable {
      */
     @Excel(name = "逻辑删除", width = 15)
     @ApiModelProperty(value = "逻辑删除")
+    @TableLogic
     private java.lang.String isDelete;
 }

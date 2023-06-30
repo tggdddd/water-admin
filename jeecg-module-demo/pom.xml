@@ -21,6 +21,10 @@
             <artifactId>mybatis-plus-join-boot-starter</artifactId>
             <version>1.4.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.jeecgframework.boot</groupId>
+            <artifactId>jeecg-system-local-api</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

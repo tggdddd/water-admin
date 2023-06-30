@@ -42,6 +42,16 @@ public class WaterShopCartServiceImpl extends MPJBaseServiceImpl<WaterShopCartMa
     WaterOrderMapper orderMapper;
 
     @Override
+    public long getCardCount(String username) {
+        MPJLambdaWrapper<WaterShopCart> wrapper = new MPJLambdaWrapper<>();
+        wrapper.eq(WaterShopCart::getUserId, username)
+                .gt(WaterShopCart::getNumber, 0)
+                .innerJoin(WaterShopItem.class, WaterShopItem::getId, WaterShopCart::getShopId)
+                .eq(WaterShopItem::getStatus, DictEnum.Enable.getValue());
+        return cartMapper.selectJoinCount(wrapper);
+    }
+
+    @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public WaterOrder payOrUpdate(List<WaterShopCart> list, String username) {
         //        逐个检查商品是否有效

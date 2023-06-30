@@ -17,7 +17,7 @@ import java.io.UnsupportedEncodingException;
 /**
  * @Description: 分类
  * @Author: jeecg-boot
- * @Date: 2023-06-26
+ * @Date: 2023-06-29
  * @Version: V1.0
  */
 @Data
@@ -74,12 +74,63 @@ public class WaterClass implements Serializable {
     private transient java.lang.String imageString;
 
     private byte[] image;
+
+    public byte[] getImage() {
+        if (imageString == null) {
+            return null;
+        }
+        try {
+            return imageString.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String getImageString() {
+        if (image == null || image.length == 0) {
+            return "";
+        }
+        try {
+            return new String(image, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
     /**
      * 图标
      */
     @Excel(name = "图标", width = 15)
     private transient java.lang.String iconString;
+
     private byte[] icon;
+
+    public byte[] getIcon() {
+        if (iconString == null) {
+            return null;
+        }
+        try {
+            return iconString.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String getIconString() {
+        if (icon == null || icon.length == 0) {
+            return "";
+        }
+        try {
+            return new String(icon, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
     /**
      * 简介
      */
@@ -106,52 +157,17 @@ public class WaterClass implements Serializable {
     @Dict(dicCode = "yn")
     @ApiModelProperty(value = "是否有子节点")
     private java.lang.String hasChild;
-
-    public byte[] getImage() {
-        if (imageString == null) {
-            return null;
-        }
-        try {
-            return imageString.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public String getImageString() {
-        if (image == null || image.length == 0) {
-            return "";
-        }
-        try {
-            return new String(image, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
-    public byte[] getIcon() {
-        if (iconString == null) {
-            return null;
-        }
-        try {
-            return iconString.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public String getIconString() {
-        if (icon == null || icon.length == 0) {
-            return "";
-        }
-        try {
-            return new String(icon, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
+    /**
+     * 排序
+     */
+    @Excel(name = "排序", width = 15)
+    @ApiModelProperty(value = "排序")
+    private java.lang.Integer sort;
+    /**
+     * 首页展示
+     */
+    @Excel(name = "首页展示", width = 15, dicCode = "yes_or_no")
+    @Dict(dicCode = "yes_or_no")
+    @ApiModelProperty(value = "首页展示")
+    private java.lang.Integer showIndex;
 }

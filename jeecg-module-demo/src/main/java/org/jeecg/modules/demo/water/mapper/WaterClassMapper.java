@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * @Description: 分类
  * @Author: jeecg-boot
- * @Date: 2023-06-26
+ * @Date: 2023-06-29
  * @Version: V1.0
  */
 public interface WaterClassMapper extends BaseMapper<WaterClass> {

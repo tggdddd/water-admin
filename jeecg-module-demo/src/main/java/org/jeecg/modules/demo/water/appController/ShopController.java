@@ -7,14 +7,9 @@ import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.modules.base.ThinkResult;
 import org.jeecg.modules.demo.water.entity.*;
 import org.jeecg.modules.demo.water.po.CartPo;
-import org.jeecg.modules.demo.water.service.IWaterShopCartService;
-import org.jeecg.modules.demo.water.service.IWaterShopItemService;
-import org.jeecg.modules.demo.water.service.IWaterShopModelService;
-import org.jeecg.modules.demo.water.service.IWaterShopService;
-import org.jeecg.modules.demo.water.vo.CartVo;
+import org.jeecg.modules.demo.water.service.*;
 import org.jeecg.modules.demo.water.vo.DictEnum;
 import org.jeecg.modules.demo.water.vo.ShopVo;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +29,8 @@ public class ShopController {
     IWaterShopModelService modelService;
     @Autowired
     IWaterShopCartService cartService;
+    @Autowired
+    IWaterFooterService footerService;
 
     /**
      * 统计在售商品数
@@ -50,7 +47,12 @@ public class ShopController {
      * 获取商品详情
      */
     @GetMapping("detail")
-    public ThinkResult shopDetail(@RequestParam("id") String id) {
+    public ThinkResult shopDetail(@RequestParam("id") String id, HttpServletRequest request) {
+        try {
+            String userNameByToken = JwtUtil.getUserNameByToken(request);
+            footerService.updateOrSaveFooter(userNameByToken, id);
+        } catch (Exception ignored) {
+        }
         MPJLambdaWrapper<WaterShop> shopLambdaQueryWrapper = new MPJLambdaWrapper<>();
         shopLambdaQueryWrapper.eq(WaterShop::getId, id)
                 .selectAll(WaterShop.class)
@@ -186,51 +188,5 @@ public class ShopController {
         return ThinkResult.ok(null);
     }
 
-    /**
-     * 商品页面获得购物车信息
-     */
-    @RequestMapping("getCart")
-    public ThinkResult getCart(HttpServletRequest request) {
-        // TODO: 2023/6/27
-        String username = JwtUtil.getUserNameByToken(request);
-        if (username == null) {
-            return ThinkResult.notLogin();
-        }
-        LambdaQueryWrapper<WaterShopCart> cartQueryWrapper = new LambdaQueryWrapper<>();
-        cartQueryWrapper.eq(WaterShopCart::getUserId, username);
-        List<WaterShopCart> list = cartService.list();
-        ArrayList<Object> resultList = new ArrayList<>(list.size());
-        // 获取购物车统计信息
-        int goodsCount = 0;
-        int goodsAmount = 0;
-//        let checkedGoodsCount = 0;
-//        let checkedGoodsAmount = 0;
-        int numberChange = 0;
-        for (WaterShopCart waterShopCart : list) {
-            WaterShopItem item = itemService.getById(waterShopCart.getShopId());
-//            商品不存在
-            if (Objects.equals(item.getStatus(), DictEnum.Disable.getValue()) || Objects.equals(item.getIsDelete(), "1")) {
-                cartService.removeById(waterShopCart.getId());
-            }
-            CartVo cartVo = new CartVo();
-            BeanUtils.copyProperties(item, cartVo);
-//            数量不能多于库存
-            cartVo.setNumber(Math.min(Integer.parseInt(item.getReserve()), Integer.parseInt(waterShopCart.getNumber())));
-            if (cartVo.getNumber() != Integer.parseInt(waterShopCart.getNumber())) {
-//                超过库存
-                numberChange = 1;
-            }
-            goodsCount += cartVo.getNumber();
-            goodsAmount += cartVo.getNumber() * Integer.parseInt(cartVo.getRetail());
-            resultList.add(cartVo);
-        }
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("cartList", resultList);
-        jsonObject.put("goodAmount", goodsAmount);
-        jsonObject.put("goodsCount", goodsCount);
-        jsonObject.put("checkedGoodsCount", goodsAmount);
-        jsonObject.put("checkedGoodsAmount", goodsCount);
-        jsonObject.put("numberChange", numberChange);
-        return ThinkResult.ok(jsonObject);
-    }
+
 }

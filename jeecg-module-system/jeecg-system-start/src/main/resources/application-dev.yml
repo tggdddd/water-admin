@@ -296,3 +296,10 @@ third-app:
       enable: true
       client-id: wx6339984661ad7091
       client-secret: 83ad30e663671e76c64a65312796e90c
+wechat:
+  pay:
+    enable: false
+    merchantId:
+    privateKeyPath:
+    merchantSerialNumber:
+    apiV3key:
