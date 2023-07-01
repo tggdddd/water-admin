@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
 import org.jeecg.common.api.CommonAPI;
 import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.common.util.oConvertUtils;
@@ -15,15 +16,14 @@ import org.jeecg.modules.demo.water.entity.WaterSend;
 import org.jeecg.modules.demo.water.entity.WaterShopItem;
 import org.jeecg.modules.demo.water.entity.WaterShopModel;
 import org.jeecg.modules.demo.water.mapper.WaterOrderMapper;
+import org.jeecg.modules.demo.water.po.SubmitOrderParamsPO;
 import org.jeecg.modules.demo.water.service.IWaterOrderService;
 import org.jeecg.modules.demo.water.service.IWaterSendService;
 import org.jeecg.modules.demo.water.service.IWaterShopItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
@@ -47,6 +47,34 @@ public class OrderController {
     CommonAPI commonAPI;
     @Autowired
     IWaterSendService sendService;
+
+    /**
+     * 支付结果手动查询
+     */
+    @GetMapping("checkoutPayStatus")
+    public ThinkResult checkPay(@RequestParam("orderId") String orderId) {
+//        更新订单状态
+        boolean b = orderService.updateOrderStatusPaid(orderId);
+        return b ? ThinkResult.ok() : ThinkResult.error();
+    }
+
+    /**
+     * 提交订单
+     */
+    @PostMapping("submit")
+    public ThinkResult submitOrder(@Validated @RequestBody SubmitOrderParamsPO params, HttpServletRequest request) {
+//       确认订单
+        boolean b = orderService.submitOrder(params, JwtUtil.getUserNameByToken(request));
+        if (!b) {
+            return ThinkResult.error("订单无法确认");
+        }
+//      微信支付订单生成
+        PrepayWithRequestPaymentResponse prepayWithRequestPaymentResponse = orderService.generateWeChatOrder(params.getOrderId());
+        if (prepayWithRequestPaymentResponse != null) {
+            return ThinkResult.ok(prepayWithRequestPaymentResponse);
+        }
+        return ThinkResult.error("生成支付订单失败");
+    }
 
     /**
      * 根据订单再次购买

@@ -24,5 +24,8 @@ public class WeChatPayConfig {
      * 商户APIV3密钥
      */
     private String apiV3key = "";
-
+    /**
+     * 支付订单描述
+     */
+    private String description = "";
 }

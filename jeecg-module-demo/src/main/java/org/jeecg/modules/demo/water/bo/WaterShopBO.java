@@ -5,15 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jeecg.modules.demo.water.entity.WaterOrder;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 public class WaterShopBO extends WaterOrder {
-    private String goodAndItemName;
-    private String model;
+    private String attach;
 
-    public void setNameAndModel(String good, String item, String model) {
-        this.goodAndItemName = good + ":" + item;
-        this.model = model;
-    }
 }

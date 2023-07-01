@@ -1,6 +1,6 @@
 package org.jeecg.modules.demo.water.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.github.yulichang.base.MPJBaseMapper;
 import org.jeecg.modules.demo.water.entity.WaterSend;
 
 /**
@@ -9,6 +9,6 @@ import org.jeecg.modules.demo.water.entity.WaterSend;
  * @Date: 2023-06-26
  * @Version: V1.0
  */
-public interface WaterSendMapper extends BaseMapper<WaterSend> {
+public interface WaterSendMapper extends MPJBaseMapper<WaterSend> {
 
 }

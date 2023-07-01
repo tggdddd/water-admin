@@ -1,6 +1,5 @@
 package org.jeecg.config;
 
-import com.wechat.pay.java.core.Config;
 import com.wechat.pay.java.core.RSAAutoCertificateConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -14,7 +13,7 @@ public class WeChatConfigBean {
     WeChatPayConfig weChatPayConfig;
 
     @Bean
-    public Config config() {
+    public RSAAutoCertificateConfig config() {
         return new RSAAutoCertificateConfig.Builder()
                 .merchantId(weChatPayConfig.getMerchantId())
                 .privateKeyFromPath(weChatPayConfig.getPrivateKeyPath())

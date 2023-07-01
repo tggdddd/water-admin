@@ -3,6 +3,8 @@ package org.jeecg.modules.demo.water.appController;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import org.jeecg.common.system.api.ISysBaseAPI;
+import org.jeecg.common.system.vo.SysDepartModel;
 import org.jeecg.modules.base.ThinkResult;
 import org.jeecg.modules.demo.water.entity.WaterClass;
 import org.jeecg.modules.demo.water.entity.WaterShop;
@@ -12,11 +14,13 @@ import org.jeecg.modules.demo.water.service.IWaterShopService;
 import org.jeecg.modules.demo.water.vo.DictEnum;
 import org.jeecg.modules.demo.water.vo.ShopVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,6 +31,31 @@ public class ClassController {
     private IWaterClassService waterClassService;
     @Autowired
     private IWaterShopService shopService;
+    @Autowired
+    private ISysBaseAPI sysBaseAPI;
+
+    /**
+     * 获取最末部门
+     * 用于 订单站点派送 选择
+     */
+    @GetMapping("depart")
+    public ThinkResult getDepart() {
+        List<SysDepartModel> allSysDepart = sysBaseAPI.getAllSysDepart();
+        LinkedList<SysDepartModel> tailNode = new LinkedList<>();
+        for (SysDepartModel sysDepartModel : allSysDepart) {
+            boolean flag = true;
+            for (SysDepartModel departModel : allSysDepart) {
+                if (Objects.equals(departModel.getParentId(), sysDepartModel.getId())) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) {
+                tailNode.add(sysDepartModel);
+            }
+        }
+        return ThinkResult.ok(tailNode);
+    }
 
     /**
      * 获取所有分类

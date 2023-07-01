@@ -1,6 +1,7 @@
 package org.jeecg.config;
 
-import com.wechat.pay.java.core.Config;
+import com.wechat.pay.java.core.RSAAutoCertificateConfig;
+import com.wechat.pay.java.core.notification.NotificationParser;
 import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
 import com.wechat.pay.java.service.refund.RefundService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +13,16 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnBean(EnableWeChatPay.class)
 public class WeChatPayConfiguration {
     @Autowired
-    Config config;
+    RSAAutoCertificateConfig config;
 
     @Bean
     public JsapiServiceExtension getJsServiceExtension() {
         return new JsapiServiceExtension.Builder().config(config).build();
+    }
+
+    @Bean
+    public NotificationParser notificationParser() {
+        return new NotificationParser(config);
     }
 
     @Bean

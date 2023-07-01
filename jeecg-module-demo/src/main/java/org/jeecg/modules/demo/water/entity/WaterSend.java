@@ -15,6 +15,7 @@ import org.jeecgframework.poi.excel.annotation.Excel;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * @Description: 派送表
@@ -86,7 +87,7 @@ public class WaterSend implements Serializable {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "接单时间")
-    private java.util.Date startTime;
+    private LocalDateTime startTime;
     /**
      * 结束时间
      */

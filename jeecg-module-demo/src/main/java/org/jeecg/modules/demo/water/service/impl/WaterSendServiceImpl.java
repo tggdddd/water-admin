@@ -1,6 +1,6 @@
 package org.jeecg.modules.demo.water.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.yulichang.base.MPJBaseServiceImpl;
 import org.jeecg.modules.demo.water.entity.WaterSend;
 import org.jeecg.modules.demo.water.mapper.WaterSendMapper;
 import org.jeecg.modules.demo.water.service.IWaterSendService;
@@ -13,6 +13,6 @@ import org.springframework.stereotype.Service;
  * @Version: V1.0
  */
 @Service
-public class WaterSendServiceImpl extends ServiceImpl<WaterSendMapper, WaterSend> implements IWaterSendService {
+public class WaterSendServiceImpl extends MPJBaseServiceImpl<WaterSendMapper, WaterSend> implements IWaterSendService {
 
 }
