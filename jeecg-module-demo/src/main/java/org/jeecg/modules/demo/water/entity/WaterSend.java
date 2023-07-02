@@ -95,7 +95,7 @@ public class WaterSend implements Serializable {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "结束时间")
-    private java.util.Date endTime;
+    private LocalDateTime endTime;
     /**
      * 订单号
      */

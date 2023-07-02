@@ -298,8 +298,8 @@ third-app:
       client-secret: 83ad30e663671e76c64a65312796e90c
 wechat:
   pay:
-    enable: false
-    merchantId:
-    privateKeyPath:
-    merchantSerialNumber:
-    apiV3key:
+    enable: true
+    merchantId: 1637666135
+    privateKeyPath: pay_private.pem
+    merchantSerialNumber: 4EDDD91B8B8772E926F8121978747AD4BA832A23
+    apiV3key: 26bd00691e6b43369e3e4e0753fcbce0

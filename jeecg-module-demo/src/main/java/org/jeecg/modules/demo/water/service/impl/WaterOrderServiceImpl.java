@@ -49,7 +49,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     WaterShopCartMapper cartMapper;
     @Autowired
     WaterSendMapper sendMapper;
-    @Autowired
+        @Autowired
     IWetChatJSPayService payService;
 
     @Override
@@ -61,6 +61,11 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
             if (Objects.equals(order.getOrdreStatus(), OrderConstant.UNPAID)) {
                 order.setOrdreStatus(OrderConstant.WAITING_SEND);
                 orderMapper.updateById(order);
+//                创建派送单
+                WaterSend waterSend = new WaterSend();
+                waterSend.setOrderId(orderId);
+                waterSend.setStatus(SendOrderConstant.WAITING_GET);
+                sendMapper.insert(waterSend);
                 // TODO: 2023/7/1 发送通知给骑手端
             }
             return true;
@@ -110,7 +115,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                     new MPJLambdaWrapper<WaterShopItem>()
                             .in(WaterShopItem::getId, Arrays.asList(ids))
                             .selectAll(WaterShopItem.class)
-                            .selectAs(WaterShopModel::getModel, WaterShopItem::getModel)
+                            .selectAs(WaterShopModel::getModel, WaterShopItem::getModelName)
                             .leftJoin(WaterShopModel.class, WaterShopModel::getId, WaterShopItem::getModel)
             );
             for (WaterShopItem waterShopItem : waterShopItems) {
@@ -146,7 +151,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                     new MPJLambdaWrapper<WaterShopItem>()
                             .in(WaterShopItem::getId, Arrays.asList(ids))
                             .selectAll(WaterShopItem.class)
-                            .selectAs(WaterShopModel::getModel, WaterShopItem::getModel)
+                            .selectAs(WaterShopModel::getModel, WaterShopItem::getModelName)
                             .leftJoin(WaterShopModel.class, WaterShopModel::getId, WaterShopItem::getModel)
             );
             for (WaterShopItem waterShopItem : waterShopItems) {
@@ -181,7 +186,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                     new MPJLambdaWrapper<WaterShopItem>()
                             .in(WaterShopItem::getId, Arrays.asList(ids))
                             .selectAll(WaterShopItem.class)
-                            .selectAs(WaterShopModel::getModel, WaterShopItem::getModel)
+                            .selectAs(WaterShopModel::getModel, WaterShopItem::getModelName)
                             .leftJoin(WaterShopModel.class, WaterShopModel::getId, WaterShopItem::getModel)
             );
             for (WaterShopItem waterShopItem : waterShopItems) {
@@ -201,12 +206,22 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     @Override
     @Transactional
     public boolean pickUpOrder(String orderId, String username) {
-
         WaterOrder waterOrder = orderMapper.selectById(orderId);
 //        派送单生成
-        WaterSend waterSend = new WaterSend();
+//        WaterSend waterSend = new WaterSend();
+//        waterSend.setUserId(username);
+//        waterSend.setOrderId(orderId);
+//        waterSend.setStatus(SendOrderConstant.SENDING);
+//        waterSend.setStartTime(LocalDateTime.now());
+//        int i = sendMapper.insert(waterSend);
+//        修改派送单状态
+        WaterSend waterSend = sendMapper.selectOne(new LambdaQueryWrapper<WaterSend>()
+                .eq(WaterSend::getOrderId, orderId));
+        if (!waterSend.getStatus().equals(SendOrderConstant.WAITING_GET)) {
+            System.err.println("错误的派送订单状态：" + waterSend.getStatus());
+            return false;
+        }
         waterSend.setUserId(username);
-        waterSend.setOrderId(orderId);
         waterSend.setStatus(SendOrderConstant.SENDING);
         waterSend.setStartTime(LocalDateTime.now());
         int i = sendMapper.updateById(waterSend);
@@ -230,7 +245,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
         //        派送单状态修改
         WaterSend waterSend = sendMapper.selectById(sendId);
         waterSend.setStatus(SendOrderConstant.CANCEL);
-        waterSend.setStartTime(LocalDateTime.now());
+        waterSend.setEndTime(LocalDateTime.now());
         int i = sendMapper.updateById(waterSend);
         if (i == 0) {
             return false;
@@ -314,7 +329,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
         //        派送单状态修改
         WaterSend waterSend = sendMapper.selectById(sendId);
         waterSend.setStatus(SendOrderConstant.FINISH);
-        waterSend.setStartTime(LocalDateTime.now());
+        waterSend.setEndTime(LocalDateTime.now());
         int i = sendMapper.updateById(waterSend);
         if (i == 0) {
             return false;
@@ -333,10 +348,10 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     @Override
     public Page<OrderSendItemVO> pagePaidOrderItem(Page<OrderSendItemVO> page) {
         MPJLambdaWrapper<WaterOrder> wrapper = new MPJLambdaWrapper<WaterOrder>()
+                .eq(WaterOrder::getOrdreStatus, OrderConstant.WAITING_SEND)
                 .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
                 .selectAssociation(WaterSend.class, OrderSendItemVO::getSend)
-                .leftJoin(WaterSend.class, WaterSend::getOrderId, WaterOrder::getId)
-                .eq(WaterOrder::getOrdreStatus, OrderConstant.WAITING_SEND);
+                .leftJoin(WaterSend.class, WaterSend::getOrderId, WaterOrder::getId);
         Page<OrderSendItemVO> orderPage = orderMapper.selectJoinPage(page, OrderSendItemVO.class, wrapper);
         List<OrderSendItemVO> records = orderPage.getRecords();
         for (int i = 0; i < records.size(); i++) {
@@ -350,7 +365,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                     new MPJLambdaWrapper<WaterShopItem>()
                             .in(WaterShopItem::getId, Arrays.asList(ids))
                             .selectAll(WaterShopItem.class)
-                            .selectAs(WaterShopModel::getModel, WaterShopItem::getModel)
+                            .selectAs(WaterShopModel::getModel, WaterShopItem::getModelName)
                             .leftJoin(WaterShopModel.class, WaterShopModel::getId, WaterShopItem::getModel)
             );
             String[] numbers = number.split(",");
