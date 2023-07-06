@@ -25,8 +25,8 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
   mail:
-    host: smtp.163.com
-    username: jeecgos@163.com
+    host: smtp.10086.com
+    username: 15014586591@139.com
     password: ??
     properties:
       mail:
@@ -188,8 +188,8 @@ jeecg:
     excludeUrls: /test/jeecgDemo/demo3,/test/jeecgDemo/redisDemo/**,/category/**,/visual/**,/map/**,/jmreport/bigscreen2/**
   #阿里云oss存储和大鱼短信秘钥配置
   oss:
-    accessKey: ??
-    secretKey: ??
+    accessKey: LTAI5tAJMjegN4GJBJ2gncjP
+    secretKey: TMC4tgjbgUFObSTfXOzI6M3s2dQnZd
     endpoint: oss-cn-beijing.aliyuncs.com
     bucketName: jeecgdev
   # ElasticSearch 6设置
@@ -294,8 +294,8 @@ third-app:
       agent-id: ??
     WECHAT_SMALL:
       enable: true
-      client-id: wx6339984661ad7091
-      client-secret: 83ad30e663671e76c64a65312796e90c
+      client-id: wx2fae156ab3ea9e17
+      client-secret: 662979c583213f6f5e877816d6a3ebd1
 wechat:
   pay:
     enable: true

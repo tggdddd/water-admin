@@ -20,4 +20,8 @@ public class WechatOrderBO {
      * 订单附件内容
      */
     private String attach;
+    /**
+     * 支付者appid
+     */
+    private String appid;
 }

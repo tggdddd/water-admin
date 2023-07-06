@@ -1,6 +1,7 @@
 package org.jeecg.modules.demo.water.appController;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.jeecg.common.system.api.ISysBaseAPI;
 import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.modules.base.ThinkResult;
 import org.jeecg.modules.demo.water.service.IWaterFooterService;
@@ -17,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 public class FooterController {
     @Autowired
     IWaterFooterService footerService;
+    @Autowired
+    ISysBaseAPI sysBaseAPI;
 
     @RequestMapping("page")
     public ThinkResult getPage(@RequestParam("pageSize") Integer pageSize, @RequestParam("pageNo") Integer pageNo, HttpServletRequest request) {
@@ -30,4 +33,5 @@ public class FooterController {
         footerService.deleteByShopId(JwtUtil.getUserNameByToken(request), shopId);
         return ThinkResult.ok();
     }
+
 }

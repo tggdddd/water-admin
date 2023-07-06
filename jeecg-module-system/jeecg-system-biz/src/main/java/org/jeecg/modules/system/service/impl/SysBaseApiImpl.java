@@ -116,6 +116,15 @@ public class SysBaseApiImpl implements ISysBaseAPI {
     private DdSendMsgHandle ddSendMsgHandle;
 
     @Override
+    public List getDepartSysCodesByUsername(String username) {
+        List<String> departSysCodes = sysUserService.getDepartSysCodesByUsername(username);
+        Set<String> set = new HashSet<>();
+        set.addAll(departSysCodes);
+        set.addAll(departMapper.getSubDepCodesBySuperCodes(departSysCodes));
+        return Arrays.asList(set.toArray());
+    }
+
+    @Override
     //@SensitiveDecode
     public LoginUser getUserByName(String username) {
         //update-begin-author:taoyan date:2022-6-6 for: VUEN-1276 【v3流程图】测试bug 1、通过我发起的流程或者流程实例，查看历史，流程图预览问题
@@ -1306,5 +1315,10 @@ public class SysBaseApiImpl implements ISysBaseAPI {
         obj.put(WebsocketConst.MSG_CMD, WebsocketConst.MSG_CHAT);
         obj.put(WebsocketConst.MSG_USER_ID, userId);
         webSocket.sendMessage(userId, obj.toJSONString());
+    }
+
+    @Override
+    public List<String> getAllUserIdContainOrgCode(String sysCode) {
+        return sysUserService.getUserBySysCode(sysCode);
     }
 }

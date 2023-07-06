@@ -8,6 +8,7 @@ import org.jeecg.modules.demo.water.entity.WaterOrder;
 import org.jeecg.modules.demo.water.po.SubmitOrderParamsPO;
 import org.jeecg.modules.demo.water.vo.CartVo;
 import org.jeecg.modules.demo.water.vo.OrderSendItemVO;
+import org.jeecg.modules.demo.water.vo.SaleVO;
 
 import java.util.List;
 
@@ -36,9 +37,9 @@ public interface IWaterOrderService extends MPJBaseService<WaterOrder> {
     WaterOrder reOrderAgain(String orderId, String username);
 
     /**
-     * 获取待支付订单及购买的商品  reserve为购买数量
+     * 获取待发货订单及购买的商品  reserve为购买数量
      */
-    Page<OrderSendItemVO> pagePaidOrderItem(Page<OrderSendItemVO> page);
+    Page<OrderSendItemVO> pagePaidOrderItem(Page<OrderSendItemVO> page, String username);
 
     /**
      * 获取已接取待发送订单与商品
@@ -90,4 +91,25 @@ public interface IWaterOrderService extends MPJBaseService<WaterOrder> {
      */
 
     boolean updateOrderStatusRefund(String outTradeNo);
+
+    /**
+     * 统计每天的订单数
+     */
+    Page<SaleVO> calculateSale(Page<SaleVO> objectPage, String username);
+
+    /**
+     * 根据日期查询订单
+     */
+    Page<OrderSendItemVO> calculateSaleDetail(String time, Page<OrderSendItemVO> saleVOPage);
+
+    /**
+     * 根据orderId获取微信订单
+     */
+    void getPayOrder(String orderId);
+
+    /**
+     * 确认收货
+     */
+    boolean confirmReceipt(String orderId);
+
 }

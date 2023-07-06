@@ -8,9 +8,11 @@ import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
 import org.jeecg.common.api.CommonAPI;
 import org.jeecg.common.system.util.JwtUtil;
+import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.base.ThinkResult;
 import org.jeecg.modules.demo.water.constant.OrderConstant;
+import org.jeecg.modules.demo.water.constant.SendOrderConstant;
 import org.jeecg.modules.demo.water.entity.WaterOrder;
 import org.jeecg.modules.demo.water.entity.WaterSend;
 import org.jeecg.modules.demo.water.entity.WaterShopItem;
@@ -49,6 +51,15 @@ public class OrderController {
     IWaterSendService sendService;
 
     /**
+     * 确认收货
+     */
+    @RequestMapping("confirm")
+    public ThinkResult confirmReceiveOrder(@RequestParam("orderId") String orderId) {
+        boolean b = orderService.confirmReceipt(orderId);
+        return b ? ThinkResult.ok() : ThinkResult.error();
+    }
+
+    /**
      * 支付结果手动查询
      */
     @GetMapping("checkoutPayStatus")
@@ -68,8 +79,16 @@ public class OrderController {
         if (!b) {
             return ThinkResult.error("订单无法确认");
         }
-//      微信支付订单生成
-        PrepayWithRequestPaymentResponse prepayWithRequestPaymentResponse = orderService.generateWeChatOrder(params.getOrderId());
+        return ThinkResult.ok();
+    }
+
+    /**
+     * 微信支付订单生成
+     */
+    @RequestMapping("pay")
+    public ThinkResult payOrder(@RequestParam("orderId") String orderId) {
+
+        PrepayWithRequestPaymentResponse prepayWithRequestPaymentResponse = orderService.generateWeChatOrder(orderId);
         if (prepayWithRequestPaymentResponse != null) {
             return ThinkResult.ok(prepayWithRequestPaymentResponse);
         }
@@ -126,7 +145,17 @@ public class OrderController {
         JSONObject jsonObject = (JSONObject) thinkResult.getData();
         jsonObject.put("orderStatus", getDictText("order_status", jsonObject.getJSONObject("waterOrder").getString("ordreStatus")));
         WaterSend one = sendService.getOne(new LambdaQueryWrapper<WaterSend>()
-                .eq(WaterSend::getOrderId, orderId));
+                .eq(WaterSend::getOrderId, orderId)
+                .ne(WaterSend::getStatus, SendOrderConstant.CANCEL));
+//        派送员信息
+        if (one != null && one.getUserId() != null) {
+            JSONObject sendInfo = new JSONObject();
+//            姓名，电话
+            LoginUser userByName = commonAPI.getUserByName(one.getUserId());
+            sendInfo.put("name", userByName.getRealname());
+            sendInfo.put("phone", userByName.getPhone());
+            jsonObject.put("sendInfo", sendInfo);
+        }
         jsonObject.put("sendOrder", one);
         return ThinkResult.ok(jsonObject);
     }

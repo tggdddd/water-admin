@@ -8,6 +8,7 @@ import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import org.jeecg.common.system.api.ISysBaseAPI;
 import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.modules.base.ThinkResult;
+import org.jeecg.modules.demo.water.constant.AdConstant;
 import org.jeecg.modules.demo.water.entity.WaterAd;
 import org.jeecg.modules.demo.water.entity.WaterClass;
 import org.jeecg.modules.demo.water.entity.WaterShop;
@@ -50,7 +51,9 @@ public class IndexController {
         ThinkResult shop = getShop(1, 8);
         result.put("shop", shop.getData());
 //        轮播图
-        LambdaQueryWrapper<WaterAd> adWrapper = new LambdaQueryWrapper<WaterAd>().orderByAsc(WaterAd::getSort);
+        LambdaQueryWrapper<WaterAd> adWrapper = new LambdaQueryWrapper<WaterAd>()
+                .eq(WaterAd::getType, AdConstant.USER)
+                .orderByAsc(WaterAd::getSort);
         List<WaterAd> list = adService.list(adWrapper);
         result.put("ad", list);
 //        通知  todo

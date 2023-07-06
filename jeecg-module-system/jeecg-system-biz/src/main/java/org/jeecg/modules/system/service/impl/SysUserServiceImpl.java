@@ -98,6 +98,21 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private SysUserTenantMapper userTenantMapper;
 
     @Override
+    public List<String> getDepartSysCodesByUsername(String username) {
+        return sysDepartMapper.getSubDepCodesByusername(username);
+    }
+
+    @Override
+    public List<String> getUserBySysCode(String sysCode) {
+        return sysDepartMapper.getUserByCode(sysCode);
+    }
+
+    @Override
+    public List<String> getDepartSysNamesByUsername(String username) {
+        return sysDepartMapper.getSubDepNamesByusername(username);
+    }
+
+    @Override
     public Result<IPage<SysUser>> queryPageList(HttpServletRequest req, QueryWrapper<SysUser> queryWrapper, Integer pageSize, Integer pageNo) {
         Result<IPage<SysUser>> result = new Result<IPage<SysUser>>();
         //update-begin-Author:wangshuai--Date:20211119--for:【vue3】通过部门id查询用户，通过code查询id

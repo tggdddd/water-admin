@@ -17,7 +17,10 @@ import java.util.List;
  * @Author ZhiLin
  */
 public interface ISysUserDepartService extends IService<SysUserDepart> {
-
+    /**
+     * 为用户添加部门
+     */
+    boolean addDepartByDepartCode(String username, String departCode);
 
     /**
      * 根据指定用户id查询部门信息

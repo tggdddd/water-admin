@@ -272,6 +272,11 @@ public class SysUserController {
         if (sysUser == null) {
             result.error500("未找到对应实体");
         } else {
+//           设置部门名字
+            List<String> departSysNamesByUsername = sysUserService.getDepartSysNamesByUsername(sysUser.getUsername());
+            if (departSysNamesByUsername != null && departSysNamesByUsername.size() > 0) {
+                sysUser.setOrgCodeTxt(departSysNamesByUsername.stream().reduce((a, b) -> a + b).get());
+            }
             result.setResult(sysUser);
             result.setSuccess(true);
         }
@@ -936,7 +941,6 @@ public class SysUserController {
         return result;
     }
 
-
     /**
      * 用户注册接口
      *
@@ -1017,6 +1021,12 @@ public class SysUserController {
             user.setDelFlag(CommonConstant.DEL_FLAG_0);
             user.setActivitiSync(CommonConstant.ACT_SYNC_0);
             sysUserService.addUserWithRole(user, null);
+//            部门
+            String departCode = jsonObject.getString("departCode");
+            if (!oConvertUtils.isEmpty(departCode)) {
+//                分配部门
+                sysUserDepartService.addDepartByDepartCode(username, departCode);
+            }
             result.success("注册成功");
         } catch (Exception e) {
             result.error500("注册失败");

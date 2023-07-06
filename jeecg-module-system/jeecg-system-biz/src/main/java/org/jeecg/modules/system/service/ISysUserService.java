@@ -428,4 +428,19 @@ public interface ISysUserService extends IService<SysUser> {
      * @param departs
      */
     void editTenantUser(SysUser sysUser, String tenantId, String departs, String roles);
+
+    /**
+     * 获取用户包括子部门的部门编码
+     */
+    List<String> getDepartSysCodesByUsername(String username);
+
+    /**
+     * 获取用户包括子部门的部门名称
+     */
+    public List<String> getDepartSysNamesByUsername(String username);
+
+    /**
+     * 获取部门的用户
+     */
+    List<String> getUserBySysCode(String sysCode);
 }

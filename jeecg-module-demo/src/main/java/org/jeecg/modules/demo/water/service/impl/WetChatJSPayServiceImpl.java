@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -39,11 +39,11 @@ public class WetChatJSPayServiceImpl implements IWetChatJSPayService {
     RefundService refundService;
     @Autowired
     NotificationParser notificationParser;
-    private DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
+    private DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
     private Duration duration = Duration.ofHours(24);
 
     private String getExpireTime() {
-        return formatter.format(LocalDateTime.now().plus(duration));
+        return formatter.format(ZonedDateTime.now().plus(duration));
     }
 
     @Override
@@ -51,7 +51,12 @@ public class WetChatJSPayServiceImpl implements IWetChatJSPayService {
         PrepayRequest request = new PrepayRequest();
         Amount amount = new Amount();
         String[] split = wechatOrderBO.getPrices().split("\\.");
-        Integer moneyByPer = Integer.parseInt(split[0] + split[1]);
+        int a = Integer.parseInt(split[0]);
+        int b = 0;
+        if (split.length > 1) {
+            b = Integer.parseInt(split[1]);
+        }
+        Integer moneyByPer = a * 100 + b;
         amount.setTotal(moneyByPer);
         request.setAmount(amount);
         request.setAppid(thirdAppTypeConfig.getWECHAT_SMALL().getClientId());
@@ -59,7 +64,9 @@ public class WetChatJSPayServiceImpl implements IWetChatJSPayService {
         request.setDescription(wetChatPayConfig.getDescription());
         request.setAttach(wechatOrderBO.getAttach());
         request.setOutTradeNo(wechatOrderBO.getOrderId());
-        request.setTimeExpire(getExpireTime());
+        Payer payer = new Payer();
+        payer.setOpenid(wechatOrderBO.getAppid());
+        request.setPayer(payer);
         request.setNotifyUrl(RestUtil.getBaseUrl() + CALL_BACK_PATH);
         request.setOutTradeNo(wechatOrderBO.getOrderId());
         return appServiceExtension.prepayWithRequestPayment(request);

@@ -96,4 +96,10 @@
         </choose>
         ORDER BY org_code DESC
     </select>
+    <select id="getSubDepCodesBySuperCodes" resultType="java.lang.String">
+        select org_code from sys_depart where del_flag = '0' and
+        <foreach collection="orgCodes" item="item" index="index" open="(" separator="or" close=")">
+            org_code LIKE CONCAT(#{item},'%')
+        </foreach>
+    </select>
 </mapper>

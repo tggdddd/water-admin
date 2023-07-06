@@ -130,4 +130,26 @@ public interface SysDepartMapper extends BaseMapper<SysDepart> {
      */
     @Update("UPDATE sys_depart SET iz_leaf=#{leaf} WHERE id = #{id}")
     int setMainLeaf(@Param("id") String id, @Param("leaf") Integer leaf);
+
+    @Select("SELECT sd.org_code " +
+            "FROM sys_user su" +
+            "  JOIN sys_user_depart sud ON su.id = sud.user_id " +
+            "JOIN sys_depart sd ON sud.dep_id = sd.id " +
+            "WHERE su.username = #{username}")
+    List<String> getSubDepCodesByusername(@Param("username") String username);
+
+    @Select("SELECT sd.depart_name " +
+            "FROM sys_user su" +
+            "  JOIN sys_user_depart sud ON su.id = sud.user_id " +
+            "JOIN sys_depart sd ON sud.dep_id = sd.id " +
+            "WHERE su.username = #{username}")
+    List<String> getSubDepNamesByusername(@Param("username") String username);
+
+    List<String> getSubDepCodesBySuperCodes(@org.apache.ibatis.annotations.Param("orgCodes") List<String> orgCodes);
+
+    @Select("SELECT DISTINCT su.id FROM sys_user su " +
+            "JOIN sys_user_depart sud ON su.id = sud.user_id " +
+            "JOIN sys_depart sd ON sud.dep_id = sd.id " +
+            "WHERE sd.org_code = #{sysCode}")
+    List<String> getUserByCode(@org.apache.ibatis.annotations.Param("sysCode") String sysCode);
 }

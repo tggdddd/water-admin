@@ -18,7 +18,10 @@ import java.util.Set;
  * @Version V1.0
  */
 public interface ISysBaseAPI extends CommonAPI {
-
+    /**
+     * 获取用户的部门编码，包括子部门
+     */
+    List<String> getDepartSysCodesByUsername(String username);
 
     /**
      * 1发送系统消息
@@ -433,4 +436,9 @@ public interface ISysBaseAPI extends CommonAPI {
      * @param userId
      */
     void sendAppChatSocket(String userId);
+
+    /**
+     * 获取sysCode部门的成员
+     */
+    List<String> getAllUserIdContainOrgCode(String sysCode);
 }

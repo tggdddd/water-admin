@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.jeecg.common.aspect.annotation.Dict;
 import org.jeecgframework.poi.excel.annotation.Excel;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -18,7 +19,7 @@ import java.io.UnsupportedEncodingException;
 /**
  * @Description: 轮播图
  * @Author: jeecg-boot
- * @Date: 2023-06-29
+ * @Date: 2023-07-05
  * @Version: V1.0
  */
 @Data
@@ -77,24 +78,6 @@ public class WaterAd implements Serializable {
     private transient java.lang.String imageString;
 
     private byte[] image;
-    /**
-     * 排序
-     */
-    @Excel(name = "排序", width = 15)
-    @ApiModelProperty(value = "排序")
-    private java.lang.Integer sort;
-    /**
-     * 点击链接
-     */
-    @Excel(name = "点击链接", width = 15)
-    @ApiModelProperty(value = "点击链接")
-    private java.lang.String url;
-    /**
-     * 图片描述
-     */
-    @Excel(name = "图片描述", width = 15)
-    @ApiModelProperty(value = "图片描述")
-    private java.lang.String description;
 
     public byte[] getImage() {
         if (imageString == null) {
@@ -119,4 +102,30 @@ public class WaterAd implements Serializable {
         }
         return "";
     }
+
+    /**
+     * 排序
+     */
+    @Excel(name = "排序", width = 15)
+    @ApiModelProperty(value = "排序")
+    private java.lang.Integer sort;
+    /**
+     * 点击链接
+     */
+    @Excel(name = "点击链接", width = 15)
+    @ApiModelProperty(value = "点击链接")
+    private java.lang.String url;
+    /**
+     * 图片描述
+     */
+    @Excel(name = "图片描述", width = 15)
+    @ApiModelProperty(value = "图片描述")
+    private java.lang.String description;
+    /**
+     * 类型
+     */
+    @Excel(name = "类型", width = 15, dicCode = "ad_type")
+    @Dict(dicCode = "ad_type")
+    @ApiModelProperty(value = "类型")
+    private java.lang.String type;
 }

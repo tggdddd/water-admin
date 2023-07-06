@@ -70,7 +70,7 @@ public class WaterSend implements Serializable {
      * 派送人
      */
     @Excel(name = "派送人", width = 15, dictTable = "sys_user", dicText = "realname", dicCode = "id")
-    @Dict(dictTable = "sys_user", dicText = "realname", dicCode = "id")
+    @Dict(dictTable = "sys_user", dicText = "realname", dicCode = "username")
     @ApiModelProperty(value = "派送人")
     private java.lang.String userId;
     /**

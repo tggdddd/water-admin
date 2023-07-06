@@ -12,6 +12,13 @@
     <artifactId>jeecg-module-demo</artifactId>
 
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.getui.push/restful-sdk -->
+        <dependency>
+            <groupId>com.getui.push</groupId>
+            <artifactId>restful-sdk</artifactId>
+            <version>1.0.0.13</version>
+        </dependency>
+
         <dependency>
             <groupId>org.jeecgframework.boot</groupId>
             <artifactId>jeecg-boot-base-core</artifactId>

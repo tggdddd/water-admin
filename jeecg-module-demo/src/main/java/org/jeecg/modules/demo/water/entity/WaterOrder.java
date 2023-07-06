@@ -147,7 +147,7 @@ public class WaterOrder implements Serializable {
      * 分配区域
      */
     @Excel(name = "分配区域", width = 15, dictTable = "sys_depart", dicText = "depart_name", dicCode = "id")
-    @Dict(dictTable = "sys_depart", dicText = "depart_name", dicCode = "id")
+    @Dict(dictTable = "sys_depart", dicText = "depart_name", dicCode = "org_code")
     @ApiModelProperty(value = "分配区域")
     private java.lang.String locatonType;
     /**

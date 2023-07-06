@@ -24,7 +24,7 @@ import java.util.Arrays;
 /**
  * @Description: 轮播图
  * @Author: jeecg-boot
- * @Date: 2023-06-29
+ * @Date: 2023-07-05
  * @Version: V1.0
  */
 @Api(tags = "轮播图")
@@ -58,7 +58,7 @@ public class WaterAdController extends JeecgController<WaterAd, IWaterAdService>
     }
 
     /**
-     * 添加
+     *   添加
      *
      * @param waterAd
      * @return
@@ -73,7 +73,7 @@ public class WaterAdController extends JeecgController<WaterAd, IWaterAdService>
     }
 
     /**
-     * 编辑
+     *  编辑
      *
      * @param waterAd
      * @return
@@ -88,7 +88,7 @@ public class WaterAdController extends JeecgController<WaterAd, IWaterAdService>
     }
 
     /**
-     * 通过id删除
+     *   通过id删除
      *
      * @param id
      * @return
@@ -103,7 +103,7 @@ public class WaterAdController extends JeecgController<WaterAd, IWaterAdService>
     }
 
     /**
-     * 批量删除
+     *  批量删除
      *
      * @param ids
      * @return

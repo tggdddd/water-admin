@@ -9,5 +9,5 @@ public class OrderConstant {
     public static final String FINISH = "5";
     public static final String CANCEL = "8";
     public static final String REFUND = "7";
-
+    public static final String REFUNDING = "99";
 }

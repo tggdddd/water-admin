@@ -97,6 +97,7 @@ public class SysUser implements Serializable {
     /**
      * 登录选择部门编码
      */
+
     private String orgCode;
     /**
      * 登录选择租户ID

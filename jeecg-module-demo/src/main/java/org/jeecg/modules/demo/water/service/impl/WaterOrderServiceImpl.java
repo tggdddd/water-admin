@@ -7,6 +7,8 @@ import com.github.yulichang.base.MPJBaseServiceImpl;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
 import com.wechat.pay.java.service.payments.model.Transaction;
+import org.jeecg.common.api.CommonAPI;
+import org.jeecg.common.system.api.ISysBaseAPI;
 import org.jeecg.modules.base.ThinkResult;
 import org.jeecg.modules.demo.water.bo.WechatOrderBO;
 import org.jeecg.modules.demo.water.constant.OrderConstant;
@@ -19,10 +21,7 @@ import org.jeecg.modules.demo.water.mapper.WaterShopItemMapper;
 import org.jeecg.modules.demo.water.po.SubmitOrderParamsPO;
 import org.jeecg.modules.demo.water.service.IWaterOrderService;
 import org.jeecg.modules.demo.water.service.IWetChatJSPayService;
-import org.jeecg.modules.demo.water.vo.CartVo;
-import org.jeecg.modules.demo.water.vo.DictEnum;
-import org.jeecg.modules.demo.water.vo.OrderAndItems;
-import org.jeecg.modules.demo.water.vo.OrderSendItemVO;
+import org.jeecg.modules.demo.water.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -30,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -49,8 +49,76 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     WaterShopCartMapper cartMapper;
     @Autowired
     WaterSendMapper sendMapper;
-        @Autowired
+    @Autowired
     IWetChatJSPayService payService;
+    @Autowired
+    ISysBaseAPI sysBaseAPI;
+    @Autowired
+    CommonAPI commonAPI;
+
+    @Override
+    public boolean confirmReceipt(String orderId) {
+//      todo  将订单的状态修改为待评价
+        WaterOrder waterOrder = orderMapper.selectById(orderId);
+        waterOrder.setOrdreStatus(OrderConstant.FINISH);
+        int i = orderMapper.updateById(waterOrder);
+        return i == 1;
+    }
+
+    @Override
+    public void getPayOrder(String orderId) {
+        Transaction byOwnOrder = payService.getByOwnOrder(orderId);
+    }
+
+    @Override
+    public Page<OrderSendItemVO> calculateSaleDetail(String time, Page<OrderSendItemVO> page) {
+        Page<OrderSendItemVO> p = sendMapper.selectJoinPage(page, OrderSendItemVO.class, new MPJLambdaWrapper<WaterSend>()
+                .selectAssociation(WaterSend.class, OrderSendItemVO::getSend)
+                .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
+                .in(WaterOrder::getOrdreStatus, OrderConstant.SEND, OrderConstant.WAITING_SEND, OrderConstant.FINISH, OrderConstant.EVALUATE)
+                .eq("DATE(t1.start_time)", LocalDate.parse(time.split(" ")[0]))
+                .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId));
+        List<OrderSendItemVO> records = p.getRecords();
+        for (OrderSendItemVO record : records) {
+            WaterOrder order = record.getOrder();
+            String shopItemId = order.getShopItemId();
+            String[] numbers = order.getNumber().split(",");
+            String[] ids = order.getShopItemId().split(",");
+            List<WaterShopItem> waterShopItems = itemMapper.selectJoinList(
+                    WaterShopItem.class,
+                    new MPJLambdaWrapper<WaterShopItem>()
+                            .in(WaterShopItem::getId, Arrays.asList(ids))
+                            .selectAll(WaterShopItem.class)
+                            .selectAs(WaterShopModel::getModel, WaterShopItem::getModelName)
+                            .leftJoin(WaterShopModel.class, WaterShopModel::getId, WaterShopItem::getModel)
+            );
+            for (WaterShopItem waterShopItem : waterShopItems) {
+                for (int j = 0; j < ids.length; j++) {
+                    String s = ids[j];
+                    if (waterShopItem.equals(s)) {
+                        waterShopItem.setReserve(numbers[j]);
+                        break;
+                    }
+                }
+            }
+            record.setItems(waterShopItems);
+        }
+        return p;
+    }
+
+    @Override
+    public Page<SaleVO> calculateSale(Page<SaleVO> objectPage, String username) {
+        MPJLambdaWrapper<WaterOrder> wrapper = new MPJLambdaWrapper<WaterOrder>();
+        wrapper.in(WaterOrder::getOrdreStatus, OrderConstant.SEND, OrderConstant.WAITING_SEND, OrderConstant.FINISH, OrderConstant.EVALUATE)
+                .selectAs("date_format(start_time, '%Y-%m-%d')", SaleVO::getDate)
+                .selectCount(WaterOrder::getId, SaleVO::getSaleTotal)
+                .selectSum(WaterOrder::getPrices, SaleVO::getAmountTotal)
+                .in(WaterOrder::getLocatonType, getDepartCodes(username))
+                .groupBy("date")
+                .orderByDesc("date");
+        Page<SaleVO> p = orderMapper.selectJoinPage(objectPage, SaleVO.class, wrapper);
+        return p;
+    }
 
     @Override
     @Transactional
@@ -62,15 +130,22 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                 order.setOrdreStatus(OrderConstant.WAITING_SEND);
                 orderMapper.updateById(order);
 //                创建派送单
-                WaterSend waterSend = new WaterSend();
-                waterSend.setOrderId(orderId);
-                waterSend.setStatus(SendOrderConstant.WAITING_GET);
-                sendMapper.insert(waterSend);
+                generateSendOrder(orderId, order.getLocatonType());
                 // TODO: 2023/7/1 发送通知给骑手端
+                List<String> ids = sysBaseAPI.getAllUserIdContainOrgCode(order.getLocatonType());
+                sysBaseAPI.sendWebSocketMsg(ids.toArray(new String[0]), "user");
             }
             return true;
         }
         return false;
+    }
+
+    private boolean generateSendOrder(String orderId, String sysOrgCode) {
+        WaterSend waterSend = new WaterSend();
+        waterSend.setOrderId(orderId);
+        waterSend.setSysOrgCode(sysOrgCode);
+        waterSend.setStatus(SendOrderConstant.WAITING_GET);
+        return 1 == sendMapper.insert(waterSend);
     }
 
     @Override
@@ -103,6 +178,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                 .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
                 .eq(WaterSend::getUserId, username)
                 .eq(WaterSend::getStatus, SendOrderConstant.SENDING)
+                .in(WaterSend::getSysOrgCode, getDepartCodes(username))
                 .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId));
         List<OrderSendItemVO> records = p.getRecords();
         for (OrderSendItemVO record : records) {
@@ -138,6 +214,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                 .selectAssociation(WaterSend.class, OrderSendItemVO::getSend)
                 .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
                 .eq(WaterSend::getUserId, username)
+                .in(WaterSend::getSysOrgCode, getDepartCodes(username))
                 .eq(WaterSend::getStatus, SendOrderConstant.FINISH)
                 .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId));
         List<OrderSendItemVO> records = p.getRecords();
@@ -168,12 +245,17 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
         return p;
     }
 
+    private List<String> getDepartCodes(String username) {
+        return sysBaseAPI.getDepartSysCodesByUsername(username);
+    }
+
     @Override
     public Page<OrderSendItemVO> pageOwnOrderAndItem(Page<OrderSendItemVO> page, String username) {
         Page<OrderSendItemVO> p = sendMapper.selectJoinPage(page, OrderSendItemVO.class, new MPJLambdaWrapper<WaterSend>()
                 .selectAssociation(WaterSend.class, OrderSendItemVO::getSend)
                 .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
                 .eq(WaterSend::getUserId, username)
+                .in(WaterSend::getSysOrgCode, getDepartCodes(username))
                 .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId));
         List<OrderSendItemVO> records = p.getRecords();
         for (OrderSendItemVO record : records) {
@@ -216,7 +298,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
 //        int i = sendMapper.insert(waterSend);
 //        修改派送单状态
         WaterSend waterSend = sendMapper.selectOne(new LambdaQueryWrapper<WaterSend>()
-                .eq(WaterSend::getOrderId, orderId));
+                .eq(WaterSend::getOrderId, orderId).eq(WaterSend::getStatus, SendOrderConstant.WAITING_GET));
         if (!waterSend.getStatus().equals(SendOrderConstant.WAITING_GET)) {
             System.err.println("错误的派送订单状态：" + waterSend.getStatus());
             return false;
@@ -251,21 +333,32 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
             return false;
         }
 //        订单状态修改
-        WaterOrder waterOrder = orderMapper.selectById(waterSend.getId());
-        waterOrder.setOrdreStatus(OrderConstant.CANCEL);
-        i = orderMapper.updateById(waterOrder);
-        if (i == 0) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return false;
+        WaterOrder waterOrder = orderMapper.selectById(waterSend.getOrderId());
+        waterOrder.setOrdreStatus(OrderConstant.WAITING_SEND);
+        //        重新生成待派送单
+        if (orderMapper.updateById(waterOrder) == 1 && generateSendOrder(waterSend.getOrderId(), waterOrder.getSysOrgCode())) {
+            return true;
         }
-        // TODO: 2023/6/30 通知用户
-        return true;
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        return false;
+//        订单状态修改
+//        WaterOrder waterOrder = orderMapper.selectById(waterSend.getId());
+//        waterOrder.setOrdreStatus(OrderConstant.CANCEL);
+//        i = orderMapper.updateById(waterOrder);
+//        if (i == 0) {
+//            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+//            return false;
+//        }
+//        // TODO: 2023/6/30 通知用户
     }
 
     @Override
     public PrepayWithRequestPaymentResponse generateWeChatOrder(String orderId) {
 //        生成附件内容
         WaterOrder order = orderMapper.selectById(orderId);
+        if (!order.getOrdreStatus().equals(OrderConstant.UNPAID)) {
+            return null;
+        }
         String[] numbers = order.getNumber().split(",");
         String[] shopIds = order.getShopItemId().split(",");
         MPJLambdaWrapper<WaterShopItem> cartIWrapper = new MPJLambdaWrapper<>();
@@ -309,7 +402,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                         .multiply(new BigDecimal(object.getString("price"))));
             }
         }
-        return payService.createPreOrder(new WechatOrderBO(orderId, totalPrice.toString(), stringBuilder.toString()));
+        return payService.createPreOrder(new WechatOrderBO(orderId, totalPrice.toString(), stringBuilder.toString(), orderMapper.getAppid(order.getUserId())));
     }
 
     @Override
@@ -318,6 +411,13 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
         if (!order.getUserId().equals(username) || !Objects.equals(order.getOrdreStatus(), OrderConstant.UNCERTAIN)) {
             return false;
         }
+        order.setAddress(params.getAddress().getAddress());
+        order.setArea(params.getAddress().getArea());
+        order.setPhone(params.getAddress().getPhone());
+        order.setName(params.getAddress().getName());
+        order.setRemark(params.getRemark());
+        order.setStartTime(LocalDateTime.now());
+        order.setLocatonType(params.getSysCode());
         order.setOrdreStatus(OrderConstant.UNPAID);
         int i = orderMapper.updateById(order);
         return i == 1;
@@ -335,7 +435,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
             return false;
         }
 //        订单状态修改
-        WaterOrder waterOrder = orderMapper.selectById(waterSend.getId());
+        WaterOrder waterOrder = orderMapper.selectById(waterSend.getOrderId());
         waterOrder.setOrdreStatus(OrderConstant.EVALUATE);
         i = orderMapper.updateById(waterOrder);
         if (i == 0) {
@@ -346,12 +446,14 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     }
 
     @Override
-    public Page<OrderSendItemVO> pagePaidOrderItem(Page<OrderSendItemVO> page) {
+    public Page<OrderSendItemVO> pagePaidOrderItem(Page<OrderSendItemVO> page, String username) {
         MPJLambdaWrapper<WaterOrder> wrapper = new MPJLambdaWrapper<WaterOrder>()
                 .eq(WaterOrder::getOrdreStatus, OrderConstant.WAITING_SEND)
                 .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
                 .selectAssociation(WaterSend.class, OrderSendItemVO::getSend)
-                .leftJoin(WaterSend.class, WaterSend::getOrderId, WaterOrder::getId);
+                .leftJoin(WaterSend.class, WaterSend::getOrderId, WaterOrder::getId)
+                .in(WaterSend::getSysOrgCode, getDepartCodes(username))
+                .eq(WaterSend::getStatus, SendOrderConstant.WAITING_GET);
         Page<OrderSendItemVO> orderPage = orderMapper.selectJoinPage(page, OrderSendItemVO.class, wrapper);
         List<OrderSendItemVO> records = orderPage.getRecords();
         for (int i = 0; i < records.size(); i++) {

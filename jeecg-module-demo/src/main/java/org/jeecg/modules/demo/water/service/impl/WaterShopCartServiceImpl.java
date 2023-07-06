@@ -12,6 +12,7 @@ import org.jeecg.modules.demo.water.mapper.WaterOrderMapper;
 import org.jeecg.modules.demo.water.mapper.WaterShopCartMapper;
 import org.jeecg.modules.demo.water.mapper.WaterShopItemMapper;
 import org.jeecg.modules.demo.water.service.IWaterShopCartService;
+import org.jeecg.modules.demo.water.service.IWaterShopService;
 import org.jeecg.modules.demo.water.vo.DictEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -38,6 +39,8 @@ public class WaterShopCartServiceImpl extends MPJBaseServiceImpl<WaterShopCartMa
     WaterShopCartMapper cartMapper;
     @Autowired
     WaterShopItemMapper itemMapper;
+    @Autowired
+    IWaterShopService shopService;
     @Autowired
     WaterOrderMapper orderMapper;
 
@@ -119,6 +122,11 @@ public class WaterShopCartServiceImpl extends MPJBaseServiceImpl<WaterShopCartMa
                 cartIds.add(waterShopCart.getId());
             }
             totalPrice = totalPrice.add(new BigDecimal(number).multiply(new BigDecimal(item.getRetail())));
+
+//        修改商品的销量
+            WaterShop shop = shopService.getById(item.getFromId());
+            shop.setSale(String.valueOf(Integer.parseInt(shop.getSale()) + Integer.parseInt(number)));
+            shopService.updateById(shop);
         }
 //        生成订单
         WaterOrder waterOrder = new WaterOrder();

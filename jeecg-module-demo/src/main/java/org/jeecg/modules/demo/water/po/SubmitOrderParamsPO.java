@@ -1,13 +1,14 @@
 package org.jeecg.modules.demo.water.po;
 
 import lombok.Data;
+import org.jeecg.modules.demo.water.entity.WaterAddress;
 
 import javax.validation.constraints.NotNull;
 
 @Data
 public class SubmitOrderParamsPO {
     @NotNull
-    private WeChatAddress address;
+    private WaterAddress address;
     private String remark;
     @NotNull
     private String sysCode;

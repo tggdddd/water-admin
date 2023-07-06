@@ -3,6 +3,10 @@ package org.jeecg.modules.demo.water.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wechat.pay.java.service.payments.model.Transaction;
+import com.wechat.pay.java.service.refund.model.AmountReq;
+import com.wechat.pay.java.service.refund.model.Refund;
+import com.wechat.pay.java.service.refund.model.Status;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -11,9 +15,12 @@ import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.jeecg.common.system.base.controller.JeecgController;
 import org.jeecg.common.system.query.QueryGenerator;
+import org.jeecg.modules.demo.water.constant.OrderConstant;
 import org.jeecg.modules.demo.water.entity.WaterOrder;
 import org.jeecg.modules.demo.water.service.IWaterOrderService;
+import org.jeecg.modules.demo.water.service.IWetChatJSPayService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -34,6 +41,41 @@ import java.util.Arrays;
 public class WaterOrderController extends JeecgController<WaterOrder, IWaterOrderService> {
     @Autowired
     private IWaterOrderService waterOrderService;
+    @Autowired
+    private IWetChatJSPayService payService;
+
+    /**
+     * 订单退款
+     */
+    @RequestMapping("refund")
+    @RequiresPermissions("water:water_order:refund")
+    @AutoLog(value = "订单-退款")
+    @Transactional
+    public Result refundOrder(@RequestParam(value = "orderId") String orderId) {
+        WaterOrder byId = waterOrderService.getById(orderId);
+        switch (byId.getOrdreStatus()) {
+            case OrderConstant.CANCEL:
+            case OrderConstant.UNCERTAIN:
+            case OrderConstant.UNPAID:
+            case OrderConstant.REFUND:
+            case OrderConstant.REFUNDING:
+                return Result.error("非已付款订单");
+        }
+        Transaction byOwnOrder = payService.getByOwnOrder(orderId);
+        AmountReq amountReq = new AmountReq();
+        amountReq.setTotal(byOwnOrder.getAmount().getTotal().longValue());
+        amountReq.setRefund(byOwnOrder.getAmount().getTotal().longValue());
+        amountReq.setCurrency("CNY");
+        Refund a = payService.refund(byOwnOrder.getTransactionId(), orderId, amountReq, "退款");
+        if (a.getStatus().equals(Status.ABNORMAL) || a.getStatus().equals(Status.CLOSED)) {
+            return Result.error("退款失败!");
+        }
+        if (!byId.getOrdreStatus().equals(OrderConstant.REFUND)) {
+            byId.setOrdreStatus(OrderConstant.REFUND);
+            waterOrderService.updateById(byId);
+        }
+        return Result.ok("退款成功");
+    }
 
     /**
      * 分页列表查询

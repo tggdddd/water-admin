@@ -310,7 +310,8 @@ public class LoginController {
      * @return
      */
     @PostMapping(value = "/sms")
-    public Result<String> sms(@RequestBody JSONObject jsonObject) {
+    public Result<String>
+    sms(@RequestBody JSONObject jsonObject) {
         Result<String> result = new Result<String>();
         String mobile = jsonObject.get("mobile").toString();
         //手机号模式 登录模式: "2"  注册模式: "1"

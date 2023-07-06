@@ -51,7 +51,17 @@ public class SysUserDepartServiceImpl extends ServiceImpl<SysUserDepartMapper, S
     private SysUserMapper sysUserMapper;
     @Autowired
     private SysUserTenantMapper userTenantMapper;
+    @Autowired
+    private SysUserDepartMapper sysUserDepartMapper;
 
+    @Override
+    public boolean addDepartByDepartCode(String username, String departCode) {
+        SysUser user = sysUserMapper.getUserByName(username);
+        SysDepart one = sysDepartService.getOne(new LambdaQueryWrapper<SysDepart>()
+                .eq(SysDepart::getOrgCode, departCode)
+                .select(SysDepart::getId));
+        return sysUserDepartMapper.insert(new SysUserDepart(user.getId(), one.getId())) == 1;
+    }
 
     /**
      * 根据用户id查询部门信息
