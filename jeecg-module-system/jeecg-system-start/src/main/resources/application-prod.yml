@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 48080
   tomcat:
     max-swallow-size: -1
   error:
@@ -25,8 +25,8 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
   mail:
-    host: smtp.163.com
-    username: ??
+    host: smtp.10086.com
+    username: 15014586591@139.com
     password: ??
     properties:
       mail:
@@ -111,14 +111,14 @@ spring:
         # 初始化大小，最小，最大
         initial-size: 5
         min-idle: 5
-        maxActive: 1000
+        maxActive: 20
         # 配置获取连接等待超时的时间
         maxWait: 60000
         # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
         timeBetweenEvictionRunsMillis: 60000
         # 配置一个连接在池中最小生存的时间，单位是毫秒
         minEvictableIdleTimeMillis: 300000
-        validationQuery: SELECT 1 FROM DUAL
+        validationQuery: SELECT 1
         testWhileIdle: true
         testOnBorrow: false
         testOnReturn: false
@@ -133,7 +133,7 @@ spring:
         master:
           url: jdbc:mysql://127.0.0.1:3306/jeecg-boot?characterEncoding=UTF-8&useUnicode=true&useSSL=false&tinyInt1isBit=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
           username: root
-          password: root
+          password: Qq1425187931
           driver-class-name: com.mysql.cj.jdbc.Driver
           # 多数据源配置
           #multi-datasource1:
@@ -173,31 +173,30 @@ jeecg:
   signatureSecret: dd05f1c54d63749eda95f9fa6d49v442a
   # 签名拦截接口
   signUrls: /sys/dict/getDictItems/*,/sys/dict/loadDict/*,/sys/dict/loadDictOrderByValue/*,/sys/dict/loadDictItem/*,/sys/dict/loadTreeData,/sys/api/queryTableDictItemsByCode,/sys/api/queryFilterTableDictInfo,/sys/api/queryTableDictByKeys,/sys/api/translateDictFromTable,/sys/api/translateDictFromTableByKeys
-  #local\minio\alioss
-  uploadType: alioss
+  #local、minio、alioss
+  uploadType: local
   # 前端访问地址
   domainUrl:
-    pc: http://localhost:3100
-    app: http://localhost:8051
+    pc: http://pc.stopit.icu
+    app: http://app.stopit.icu
   path:
     #文件上传根目录 设置
-    upload: /opt/jeecg-boot/upload
+    upload: /opt/upFiles
     #webapp文件路径
-    webapp: /opt/jeecg-boot/webapp
+    webapp: /opt/webapp
   shiro:
-    excludeUrls: /test/jeecgDemo/demo3,/test/jeecgDemo/redisDemo/**,/category/**,/visual/**,/map/**,/jmreport/bigscreen2/**,/api/getUserInfo
+    excludeUrls: /test/jeecgDemo/demo3,/test/jeecgDemo/redisDemo/**,/category/**,/visual/**,/map/**,/jmreport/bigscreen2/**
   #阿里云oss存储和大鱼短信秘钥配置
   oss:
-    accessKey: ??
-    secretKey: ??
+    accessKey: LTAI5tAJMjegN4GJBJ2gncjP
+    secretKey: TMC4tgjbgUFObSTfXOzI6M3s2dQnZd
     endpoint: oss-cn-beijing.aliyuncs.com
     bucketName: jeecgdev
-    staticDomain: https://static.jeecg.com
-  # ElasticSearch 设置
+  # ElasticSearch 6设置
   elasticsearch:
     cluster-name: jeecg-ES
     cluster-nodes: 127.0.0.1:9200
-    check-enabled: true
+    check-enabled: false
   # 在线预览文件服务器地址配置
   file-view-domain: http://fileview.jeecg.com
   # minio文件上传
@@ -208,17 +207,9 @@ jeecg:
     bucketName: otatest
   #大屏报表参数设置
   jmreport:
-    mode: prod
+    mode: dev
     #数据字典是否进行saas数据隔离，自己看自己的字典
     saas: false
-    #是否开启租户模式 Support By v1.5.5+
-    openTenant: false
-    #安全模式(敏感接口校验、saas模式下不允许使用平台数据源)
-    #safeMode: true
-    #是否需要校验token
-    is_verify_token: true
-    #必须校验方法
-    verify_methods: remove,delete,save,add,update
   #xxl-job配置
   xxljob:
     enabled: false
@@ -250,7 +241,7 @@ knife4j:
   #开启生产环境屏蔽
   production: false
   basic:
-    enable: true
+    enable: false
     username: jeecg
     password: jeecg1314
 #第三方登录
@@ -301,3 +292,14 @@ third-app:
       # appSecret
       client-secret: ??
       agent-id: ??
+    WECHAT_SMALL:
+      enable: true
+      client-id: wx2fae156ab3ea9e17
+      client-secret: 662979c583213f6f5e877816d6a3ebd1
+wechat:
+  pay:
+    enable: true
+    merchantId: 1637666135
+    privateKeyPath: pay_private.pem
+    merchantSerialNumber: 4EDDD91B8B8772E926F8121978747AD4BA832A23
+    apiV3key: 26bd00691e6b43369e3e4e0753fcbce0
