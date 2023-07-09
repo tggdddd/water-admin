@@ -136,6 +136,7 @@ public class WaterShopCartServiceImpl extends MPJBaseServiceImpl<WaterShopCartMa
         waterOrder.setShopItemId(itemIds.stream().reduce((a, b) -> a + "," + b).get());
         waterOrder.setNumber(itemNumbers.stream().reduce((a, b) -> a + "," + b).get());
         waterOrder.setPrices(totalPrice.toString());
+        waterOrder.setCreateTime(LocalDateTime.now());
         int insert = orderMapper.insert(waterOrder);
         if (insert == 0) {
             TransactionAspectSupport.currentTransactionStatus().rollbackToSavepoint(savepoint);

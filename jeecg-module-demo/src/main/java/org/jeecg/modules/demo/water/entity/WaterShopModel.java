@@ -12,6 +12,7 @@ import org.jeecgframework.poi.excel.annotation.Excel;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @Description: 规格
@@ -71,6 +72,20 @@ public class WaterShopModel implements Serializable {
     @Excel(name = "型号/规格", width = 15)
     @ApiModelProperty(value = "型号/规格")
     private java.lang.String model;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof WaterShopModel)) return false;
+        WaterShopModel that = (WaterShopModel) o;
+        return Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
+    }
+
     @TableField(exist = false)
     private Integer number = 0;
 }

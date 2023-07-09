@@ -67,7 +67,7 @@ public class CartController {
 //        获取购物车
         LambdaQueryWrapper<WaterShopCart> cartQueryWrapper = new LambdaQueryWrapper<>();
         cartQueryWrapper.eq(WaterShopCart::getUserId, username);
-        List<WaterShopCart> list = cartService.list();
+        List<WaterShopCart> list = cartService.list(cartQueryWrapper);
         ArrayList<Object> resultList = new ArrayList<>(list.size());
         // 获取购物车统计信息
         int goodsCount = 0;

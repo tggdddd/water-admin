@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -66,7 +67,7 @@ public class ShopController {
 //        if (DictEnum.Disable.getValue().equals(shop.getStatus())) {
 //            return ThinkResult.error("该商品不存在或已下架");
 //        }
-        List<WaterShopModel> models = modelService.selectByMainId(id);
+        HashSet<WaterShopModel> models = new HashSet<>();
         JSONObject result = new JSONObject();
         int countItems = 0;
         List<WaterShopItem> items = itemService.selectByMainId(id);
@@ -76,12 +77,18 @@ public class ShopController {
                 continue;
             }
             String modelName = "";
-            for (WaterShopModel model : models) {
-                if (model.getId().equals(waterShopItem.getModel())) {
-                    modelName = model.getModel();
-                    model.setNumber(model.getNumber() + Integer.parseInt(waterShopItem.getReserve()));
-                    break;
+            WaterShopModel model = modelService.getById(waterShopItem.getModel());
+            modelName = model.getModel();
+            model.setNumber(model.getNumber() + Integer.parseInt(waterShopItem.getReserve()));
+            if (models.contains(model)) {
+                for (WaterShopModel waterShopModel : models) {
+                    if (waterShopModel.equals(model)) {
+                        waterShopModel.setNumber(model.getNumber() + waterShopModel.getNumber());
+                        break;
+                    }
                 }
+            } else {
+                models.add(model);
             }
             waterShopItem.setModelName(modelName);
             canUse.add(waterShopItem);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.demo.water.mapper.WaterClassMapper">
 
     <update id="updateTreeNodeStatus" parameterType="java.lang.String">
@@ -23,6 +23,14 @@
                 and ${key} = #{value}
             </foreach>
         </if>
+    </select>
+    <select id="totalOrderByDate"
+            resultType="org.jeecg.modules.demo.water.dashboardController.Bean.TotalOrderBean">
+        SELECT COUNT(id) AS orders, COUNT(DISTINCT user_id) AS users, SUM(prices) as princes, DATE(create_time) as day
+        FROM water_order
+        WHERE ordre_status > 1
+          AND DATE(create_time) BETWEEN DATE("${create_time_begin}") AND DATE("${create_time_end}")
+        GROUP BY day
     </select>
 
 </mapper>

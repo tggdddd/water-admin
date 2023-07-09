@@ -179,8 +179,7 @@ public class OrderController {
         }
 //        未付款
         else if (showType == 1) {
-            wrapper.eq(WaterOrder::getOrdreStatus, OrderConstant.UNCERTAIN)
-                    .or().eq(WaterOrder::getOrdreStatus, OrderConstant.UNPAID);
+            wrapper.in(WaterOrder::getOrdreStatus, OrderConstant.UNCERTAIN, OrderConstant.UNPAID);
         }
 //        待发货
         else if (showType == 2) {
