@@ -1,6 +1,5 @@
 package org.jeecg.common.drag.api.fallbak;
 
-import com.alibaba.fastjson.JSONObject;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.drag.api.IDragBaseApi;
@@ -17,10 +16,6 @@ public class DragBaseApiFallback implements IDragBaseApi {
     @Setter
     private Throwable cause;
 
-    @Override
-    public JSONObject getAllChartData(JSONObject params) {
-        return null;
-    }
 
     @Override
     public void deleteDragPage(String id) {

@@ -1,7 +1,5 @@
 package org.jeecg.common.drag.api;
 
-import com.alibaba.fastjson.JSONObject;
-
 /**
  * 仪表盘API接口
  *
@@ -26,10 +24,4 @@ public interface IDragBaseApi {
      * @return id
      */
     String copyDragPage(String id);
-
-    /**
-     * 服务器获取数据
-     */
-
-    JSONObject getAllChartData(JSONObject params);
 }

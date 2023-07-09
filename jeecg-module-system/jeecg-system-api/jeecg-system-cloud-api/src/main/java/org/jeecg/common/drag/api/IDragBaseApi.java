@@ -1,12 +1,13 @@
 package org.jeecg.common.drag.api;
 
-import com.alibaba.fastjson.JSONObject;
 import org.jeecg.common.constant.ServiceNameConstants;
 import org.jeecg.common.drag.api.fallbak.DragBaseApiFallback;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 
 /**
@@ -36,10 +37,4 @@ public interface IDragBaseApi {
      */
     @DeleteMapping(value = "/drag/api/deleteDragPage")
     void deleteDragPage(@RequestParam("id") String id);
-
-    /**
-     * 服务器获取数据
-     */
-    @PostMapping("/drag/onlDragDatasetHead/getAllChartData")
-    JSONObject getAllChartData(@RequestBody JSONObject params);
 }
