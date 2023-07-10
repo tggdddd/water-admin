@@ -24,6 +24,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -136,7 +137,7 @@ public class WaterShopCartServiceImpl extends MPJBaseServiceImpl<WaterShopCartMa
         waterOrder.setShopItemId(itemIds.stream().reduce((a, b) -> a + "," + b).get());
         waterOrder.setNumber(itemNumbers.stream().reduce((a, b) -> a + "," + b).get());
         waterOrder.setPrices(totalPrice.toString());
-        waterOrder.setCreateTime(LocalDateTime.now());
+        waterOrder.setCreateTime(new Date());
         int insert = orderMapper.insert(waterOrder);
         if (insert == 0) {
             TransactionAspectSupport.currentTransactionStatus().rollbackToSavepoint(savepoint);

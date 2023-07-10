@@ -14,7 +14,7 @@ import org.jeecg.modules.demo.water.vo.ShopVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -67,7 +67,7 @@ public class WaterFooterServiceImpl extends ServiceImpl<WaterFooterMapper, Water
             WaterFooter waterFooter1 = new WaterFooter();
             waterFooter1.setUserid(username);
             waterFooter1.setShopid(shopId);
-            waterFooter1.setUpdateTime(LocalDateTime.now());
+            waterFooter1.setUpdateTime(new Date());
             footerMapper.insert(waterFooter1);
             return;
         }

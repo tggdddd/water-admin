@@ -16,6 +16,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * @Description: 订单
@@ -52,7 +53,7 @@ public class WaterOrder implements Serializable {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "创建日期")
-    private LocalDateTime createTime;
+    private Date createTime;
     /**
      * 更新人
      */
@@ -64,7 +65,7 @@ public class WaterOrder implements Serializable {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @ApiModelProperty(value = "更新日期")
-    private LocalDateTime updateTime;
+    private Date updateTime;
     /**
      * 所属部门
      */
