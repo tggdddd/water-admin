@@ -256,7 +256,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
             for (WaterShopItem waterShopItem : waterShopItems) {
                 for (int j = 0; j < ids.length; j++) {
                     String s = ids[j];
-                    if (waterShopItem.equals(s)) {
+                    if (waterShopItem.getId().equals(s)) {
                         waterShopItem.setReserve(numbers[j]);
                         break;
                     }
@@ -296,7 +296,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
             for (WaterShopItem waterShopItem : waterShopItems) {
                 for (int j = 0; j < ids.length; j++) {
                     String s = ids[j];
-                    if (waterShopItem.equals(s)) {
+                    if (waterShopItem.getId().equals(s)) {
                         waterShopItem.setReserve(numbers[j]);
                         break;
                     }
@@ -339,7 +339,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
             for (WaterShopItem waterShopItem : waterShopItems) {
                 for (int j = 0; j < ids.length; j++) {
                     String s = ids[j];
-                    if (waterShopItem.equals(s)) {
+                    if (waterShopItem.getId().equals(s)) {
                         waterShopItem.setReserve(numbers[j]);
                         break;
                     }
