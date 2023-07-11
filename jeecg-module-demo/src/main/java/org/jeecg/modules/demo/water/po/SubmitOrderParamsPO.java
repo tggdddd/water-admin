@@ -14,4 +14,6 @@ public class SubmitOrderParamsPO {
     private String sysCode;
     @NotNull
     private String orderId;
+    @NotNull
+    private String paidType;
 }

@@ -16,6 +16,7 @@ import org.jeecg.common.aspect.annotation.AutoLog;
 import org.jeecg.common.system.base.controller.JeecgController;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.modules.demo.water.constant.OrderConstant;
+import org.jeecg.modules.demo.water.constant.PaidConstant;
 import org.jeecg.modules.demo.water.entity.WaterOrder;
 import org.jeecg.modules.demo.water.service.IWaterOrderService;
 import org.jeecg.modules.demo.water.service.IWetChatJSPayService;
@@ -60,6 +61,9 @@ public class WaterOrderController extends JeecgController<WaterOrder, IWaterOrde
             case OrderConstant.REFUND:
             case OrderConstant.REFUNDING:
                 return Result.error("非已付款订单");
+        }
+        if (!byId.getPaidType().equals(PaidConstant.WECHAT_PAID)) {
+            return Result.error("非在线支付订单");
         }
         Transaction byOwnOrder = payService.getByOwnOrder(orderId);
         AmountReq amountReq = new AmountReq();

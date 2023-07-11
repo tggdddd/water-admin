@@ -5,6 +5,7 @@ import com.github.yulichang.base.MPJBaseService;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
 import org.jeecg.modules.base.ThinkResult;
 import org.jeecg.modules.demo.water.entity.WaterOrder;
+import org.jeecg.modules.demo.water.po.CreateOrderBySendPO;
 import org.jeecg.modules.demo.water.po.SubmitOrderParamsPO;
 import org.jeecg.modules.demo.water.vo.CartVo;
 import org.jeecg.modules.demo.water.vo.OrderSendItemVO;
@@ -39,22 +40,22 @@ public interface IWaterOrderService extends MPJBaseService<WaterOrder> {
     /**
      * 获取待发货订单及购买的商品  reserve为购买数量
      */
-    Page<OrderSendItemVO> pagePaidOrderItem(Page<OrderSendItemVO> page, String username);
+    Page<OrderSendItemVO> pagePaidOrderItem(Page<OrderSendItemVO> page, String username, String address, String receiveName, String phone);
 
     /**
      * 获取已接取待发送订单与商品
      */
-    Page<OrderSendItemVO> pageOwnOrderItemWithOutSend(Page<OrderSendItemVO> objectPage, String username);
+    Page<OrderSendItemVO> pageOwnOrderItemWithOutSend(Page<OrderSendItemVO> objectPage, String username, String address, String receiveName, String phone);
 
     /**
      * 获取已接取已发送订单与商品
      */
-    Page<OrderSendItemVO> pageOwnSendOrderItem(Page<OrderSendItemVO> objectPage, String username);
+    Page<OrderSendItemVO> pageOwnSendOrderItem(Page<OrderSendItemVO> objectPage, String username, String address, String receiveName, String phone);
 
     /**
      * 获取已接取所有订单与商品
      */
-    Page<OrderSendItemVO> pageOwnOrderAndItem(Page<OrderSendItemVO> objectPage, String username);
+    Page<OrderSendItemVO> pageOwnOrderAndItem(Page<OrderSendItemVO> objectPage, String username, String address, String receiveName, String phone);
 
     /**
      * 领取派送订单
@@ -112,4 +113,11 @@ public interface IWaterOrderService extends MPJBaseService<WaterOrder> {
      */
     boolean confirmReceipt(String orderId);
 
+    /**
+     * 派送端创建订单
+     *
+     * @return null 成功
+     * @return String非null  报错情况
+     */
+    String createOrderWithOutPaid(String username, CreateOrderBySendPO params);
 }

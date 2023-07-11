@@ -7,19 +7,23 @@ import com.github.yulichang.base.MPJBaseServiceImpl;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.wechat.pay.java.service.payments.jsapi.model.PrepayWithRequestPaymentResponse;
 import com.wechat.pay.java.service.payments.model.Transaction;
+import org.apache.commons.lang3.StringUtils;
 import org.jeecg.common.api.CommonAPI;
 import org.jeecg.common.system.api.ISysBaseAPI;
 import org.jeecg.modules.base.ThinkResult;
 import org.jeecg.modules.demo.water.bo.WechatOrderBO;
 import org.jeecg.modules.demo.water.constant.OrderConstant;
+import org.jeecg.modules.demo.water.constant.PaidConstant;
 import org.jeecg.modules.demo.water.constant.SendOrderConstant;
 import org.jeecg.modules.demo.water.entity.*;
 import org.jeecg.modules.demo.water.mapper.WaterOrderMapper;
 import org.jeecg.modules.demo.water.mapper.WaterSendMapper;
 import org.jeecg.modules.demo.water.mapper.WaterShopCartMapper;
 import org.jeecg.modules.demo.water.mapper.WaterShopItemMapper;
+import org.jeecg.modules.demo.water.po.CreateOrderBySendPO;
 import org.jeecg.modules.demo.water.po.SubmitOrderParamsPO;
 import org.jeecg.modules.demo.water.service.IWaterOrderService;
+import org.jeecg.modules.demo.water.service.IWaterShopService;
 import org.jeecg.modules.demo.water.service.IWetChatJSPayService;
 import org.jeecg.modules.demo.water.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +59,55 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     ISysBaseAPI sysBaseAPI;
     @Autowired
     CommonAPI commonAPI;
+    @Autowired
+    IWaterShopService shopService;
+
+    @Override
+    @Transactional
+    public String createOrderWithOutPaid(String username, CreateOrderBySendPO params) {
+        WaterShopItem item = itemMapper.selectById(params.getShopItemId());
+        if (item.getStatus().equals(DictEnum.Disable.getValue())) {
+            return "该商品未启用";
+        }
+        int reserve = Integer.parseInt(item.getReserve()) - Integer.parseInt(params.getNumber());
+        if (reserve < 0) {
+            return "库存不足";
+        }
+//        减少商品库存
+        item.setReserve(String.valueOf(reserve));
+        itemMapper.updateById(item);
+        BigDecimal totalPrice = new BigDecimal(item.getRetail()).multiply(new BigDecimal(params.getNumber()));
+//        修改商品的销量
+        WaterShop shop = shopService.getById(item.getFromId());
+        shop.setSale(String.valueOf(Integer.parseInt(shop.getSale()) + Integer.parseInt(params.getNumber())));
+        shopService.updateById(shop);
+//        生成订单
+        WaterOrder waterOrder = new WaterOrder();
+        waterOrder.setUserId(username);
+        waterOrder.setOrdreStatus(OrderConstant.WAITING_SEND);
+        waterOrder.setStartTime(LocalDateTime.now());
+        waterOrder.setShopItemId(item.getId());
+        waterOrder.setNumber(params.getNumber());
+        waterOrder.setPrices(totalPrice.toString());
+        waterOrder.setCreateTime(new Date());
+        waterOrder.setPaidType(String.valueOf(params.getPaidType()));
+        waterOrder.setAddress(params.getAddress());
+        waterOrder.setArea(params.getArea());
+        waterOrder.setLocatonType(params.getLocationCode());
+        waterOrder.setName(params.getName());
+        waterOrder.setPhone(params.getPhone());
+        waterOrder.setRemark(params.getRemark());
+        int insert = orderMapper.insert(waterOrder);
+        if (insert == 0) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return "订单创建失败，请重试";
+        }
+//        创建派送单
+        if (!generateSendOrder(waterOrder.getId(), params.getLocationCode())) {
+            return "订单创建失败，请重试";
+        }
+        return null;
+    }
 
     @Override
     public boolean confirmReceipt(String orderId) {
@@ -131,9 +184,6 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                 orderMapper.updateById(order);
 //                创建派送单
                 generateSendOrder(orderId, order.getLocatonType());
-                // TODO: 2023/7/1 发送通知给骑手端
-                List<String> ids = sysBaseAPI.getAllUserIdContainOrgCode(order.getLocatonType());
-                sysBaseAPI.sendWebSocketMsg(ids.toArray(new String[0]), "user");
             }
             return true;
         }
@@ -145,7 +195,13 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
         waterSend.setOrderId(orderId);
         waterSend.setSysOrgCode(sysOrgCode);
         waterSend.setStatus(SendOrderConstant.WAITING_GET);
-        return 1 == sendMapper.insert(waterSend);
+        int result = sendMapper.insert(waterSend);
+        if (result == 0) {
+            return false;
+        }
+        List<String> ids = sysBaseAPI.getAllUserIdContainOrgCode(sysOrgCode);
+        sysBaseAPI.sendWebSocketMsg(ids.toArray(new String[0]), "user");
+        return true;
     }
 
     @Override
@@ -172,13 +228,16 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     }
 
     @Override
-    public Page<OrderSendItemVO> pageOwnOrderItemWithOutSend(Page<OrderSendItemVO> page, String username) {
+    public Page<OrderSendItemVO> pageOwnOrderItemWithOutSend(Page<OrderSendItemVO> page, String username, String address, String receiveName, String phone) {
         Page<OrderSendItemVO> p = sendMapper.selectJoinPage(page, OrderSendItemVO.class, new MPJLambdaWrapper<WaterSend>()
                 .selectAssociation(WaterSend.class, OrderSendItemVO::getSend)
                 .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
                 .eq(WaterSend::getUserId, username)
                 .eq(WaterSend::getStatus, SendOrderConstant.SENDING)
                 .in(WaterSend::getSysOrgCode, getDepartCodes(username))
+                .like(StringUtils.isNotBlank(address), WaterOrder::getAddress, address)
+                .like(StringUtils.isNotBlank(receiveName), WaterOrder::getName, receiveName)
+                .like(StringUtils.isNotBlank(phone), WaterOrder::getPhone, phone)
                 .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId));
         List<OrderSendItemVO> records = p.getRecords();
         for (OrderSendItemVO record : records) {
@@ -209,13 +268,16 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     }
 
     @Override
-    public Page<OrderSendItemVO> pageOwnSendOrderItem(Page<OrderSendItemVO> page, String username) {
+    public Page<OrderSendItemVO> pageOwnSendOrderItem(Page<OrderSendItemVO> page, String username, String address, String receiveName, String phone) {
         Page<OrderSendItemVO> p = sendMapper.selectJoinPage(page, OrderSendItemVO.class, new MPJLambdaWrapper<WaterSend>()
                 .selectAssociation(WaterSend.class, OrderSendItemVO::getSend)
                 .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
                 .eq(WaterSend::getUserId, username)
                 .in(WaterSend::getSysOrgCode, getDepartCodes(username))
                 .eq(WaterSend::getStatus, SendOrderConstant.FINISH)
+                .like(StringUtils.isNotBlank(address), WaterOrder::getAddress, address)
+                .like(StringUtils.isNotBlank(receiveName), WaterOrder::getName, receiveName)
+                .like(StringUtils.isNotBlank(phone), WaterOrder::getPhone, phone)
                 .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId));
         List<OrderSendItemVO> records = p.getRecords();
         for (OrderSendItemVO record : records) {
@@ -250,12 +312,15 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     }
 
     @Override
-    public Page<OrderSendItemVO> pageOwnOrderAndItem(Page<OrderSendItemVO> page, String username) {
+    public Page<OrderSendItemVO> pageOwnOrderAndItem(Page<OrderSendItemVO> page, String username, String address, String receiveName, String phone) {
         Page<OrderSendItemVO> p = sendMapper.selectJoinPage(page, OrderSendItemVO.class, new MPJLambdaWrapper<WaterSend>()
                 .selectAssociation(WaterSend.class, OrderSendItemVO::getSend)
                 .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
                 .eq(WaterSend::getUserId, username)
                 .in(WaterSend::getSysOrgCode, getDepartCodes(username))
+                .like(StringUtils.isNotBlank(address), WaterOrder::getAddress, address)
+                .like(StringUtils.isNotBlank(receiveName), WaterOrder::getName, receiveName)
+                .like(StringUtils.isNotBlank(phone), WaterOrder::getPhone, phone)
                 .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId));
         List<OrderSendItemVO> records = p.getRecords();
         for (OrderSendItemVO record : records) {
@@ -406,6 +471,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     }
 
     @Override
+    @Transactional
     public boolean submitOrder(SubmitOrderParamsPO params, String username) {
         WaterOrder order = orderMapper.selectById(params.getOrderId());
         if (!order.getUserId().equals(username) || !Objects.equals(order.getOrdreStatus(), OrderConstant.UNCERTAIN)) {
@@ -418,9 +484,22 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
         order.setRemark(params.getRemark());
         order.setStartTime(LocalDateTime.now());
         order.setLocatonType(params.getSysCode());
+        order.setPaidType(params.getPaidType());
         order.setOrdreStatus(OrderConstant.UNPAID);
-        int i = orderMapper.updateById(order);
-        return i == 1;
+        boolean j = true;
+        int i = 1;
+        if (params.getPaidType().equals(PaidConstant.SEND_PAID)) {
+            order.setOrdreStatus(OrderConstant.WAITING_SEND);
+            i = orderMapper.updateById(order);
+            j = generateSendOrder(order.getId(), order.getLocatonType());
+        } else {
+            i = orderMapper.updateById(order);
+        }
+        if (i == 1 && j) {
+            return true;
+        }
+        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        return false;
     }
 
     @Override
@@ -446,14 +525,17 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     }
 
     @Override
-    public Page<OrderSendItemVO> pagePaidOrderItem(Page<OrderSendItemVO> page, String username) {
+    public Page<OrderSendItemVO> pagePaidOrderItem(Page<OrderSendItemVO> page, String username, String address, String receiveName, String phone) {
         MPJLambdaWrapper<WaterOrder> wrapper = new MPJLambdaWrapper<WaterOrder>()
                 .eq(WaterOrder::getOrdreStatus, OrderConstant.WAITING_SEND)
                 .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
                 .selectAssociation(WaterSend.class, OrderSendItemVO::getSend)
                 .leftJoin(WaterSend.class, WaterSend::getOrderId, WaterOrder::getId)
                 .in(WaterSend::getSysOrgCode, getDepartCodes(username))
-                .eq(WaterSend::getStatus, SendOrderConstant.WAITING_GET);
+                .eq(WaterSend::getStatus, SendOrderConstant.WAITING_GET)
+                .like(StringUtils.isNotBlank(address), WaterOrder::getAddress, address)
+                .like(StringUtils.isNotBlank(receiveName), WaterOrder::getName, receiveName)
+                .like(StringUtils.isNotBlank(phone), WaterOrder::getPhone, phone);
         Page<OrderSendItemVO> orderPage = orderMapper.selectJoinPage(page, OrderSendItemVO.class, wrapper);
         List<OrderSendItemVO> records = orderPage.getRecords();
         for (int i = 0; i < records.size(); i++) {
@@ -474,7 +556,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
             for (WaterShopItem waterShopItem : waterShopItems) {
                 for (int j = 0; j < ids.length; j++) {
                     String s = ids[j];
-                    if (waterShopItem.equals(s)) {
+                    if (waterShopItem.getId().equals(s)) {
                         waterShopItem.setReserve(numbers[j]);
                         break;
                     }

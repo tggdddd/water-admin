@@ -205,8 +205,8 @@ public class OrderController {
                     .selectAs(WaterShopModel::getModel, "model")
                     .selectAs(WaterShopItem::getImage, "image"));
             String s = items.stream().map(e -> e.getString("good") + "：" + e.getString("model"))
-                    .reduce((a, b) -> a + " " + b).get();
-            order.put("imagesString", items.stream().map(e -> new String(e.getBytes("image"), StandardCharsets.UTF_8)).reduce((a, b) -> a + "," + b).get());
+                    .reduce((a, b) -> a + " " + b).orElse(null);
+            order.put("imagesString", items.stream().map(e -> new String(e.getBytes("image"), StandardCharsets.UTF_8)).reduce((a, b) -> a + "," + b).orElse(null));
             order.put("goods", s);
             String text = getDictText("order_status", order.getString("ordre_status"));
             order.put("orderStatus", text);

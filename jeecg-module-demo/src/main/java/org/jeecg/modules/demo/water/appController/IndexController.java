@@ -65,6 +65,8 @@ public class IndexController {
         } catch (Exception e) {
             result.put("cartCount", 0);
         }
+//        推广活动
+        result.put("share", new JSONObject());
         return ThinkResult.ok(result);
     }
 

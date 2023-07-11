@@ -16,7 +16,6 @@ import java.util.Scanner;
 @Component("pca")
 public class ProvinceCityArea {
     List<Area> areaList;
-
     public String getText(String code) {
         this.initAreaList();
         if (this.areaList != null || this.areaList.size() > 0) {

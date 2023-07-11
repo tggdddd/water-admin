@@ -1,20 +1,27 @@
 package org.jeecg.modules.demo.water.adpController;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.jeecg.common.api.CommonAPI;
+import org.jeecg.common.api.vo.Result;
+import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.common.system.vo.DictModel;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.modules.demo.water.entity.WaterAd;
+import org.jeecg.modules.demo.water.entity.WaterPaidImage;
+import org.jeecg.modules.demo.water.entity.WaterShopItem;
+import org.jeecg.modules.demo.water.po.CreateOrderBySendPO;
 import org.jeecg.modules.demo.water.service.IWaterAdService;
 import org.jeecg.modules.demo.water.service.IWaterOrderService;
+import org.jeecg.modules.demo.water.service.IWaterPaidImageService;
+import org.jeecg.modules.demo.water.service.IWaterShopItemService;
+import org.jeecg.modules.demo.water.vo.DictEnum;
 import org.jeecg.modules.demo.water.vo.OrderSendItemVO;
 import org.jeecg.modules.demo.water.vo.SaleVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,12 +36,44 @@ public class COrderController {
     CommonAPI commonAPI;
     @Autowired
     IWaterAdService adService;
-//    /**每日收款*/
-//    @RequestMapping("earn/list")
-//    public Page cslculateEarn(@RequestParam(value = "size", defaultValue = "10") Integer size,
-//                              @RequestParam(value = "current", defaultValue = "1") Integer current) {
-//        return orderService.calculateEarn(new Page<SaleVO>(current, size));
-//    }
+    @Autowired
+    IWaterPaidImageService paidImageService;
+    @Autowired
+    ProvinceCityArea cityArea;
+    @Autowired
+    IWaterShopItemService itemService;
+
+    /**
+     * 创建派送单 （包括购买订单）
+     */
+    @PostMapping("createOrder")
+    public Result<String> createOrder(@RequestBody CreateOrderBySendPO params, HttpServletRequest request) {
+        String username = JwtUtil.getUserNameByToken(request);
+        LoginUser user = commonAPI.getUserByName(username);
+        if (user.getUserIdentity() != 2) {
+            return Result.error("越权操作");
+        }
+        String orderWithOutPaid = orderService.createOrderWithOutPaid(username, params);
+        return orderWithOutPaid == null ? Result.ok() : Result.error(orderWithOutPaid);
+    }
+
+
+    /**
+     * 商品列表
+     */
+    @RequestMapping("shopItems/list")
+    public List<WaterShopItem> getShopItemsList() {
+        return itemService.list(new LambdaQueryWrapper<WaterShopItem>()
+                .eq(WaterShopItem::getStatus, DictEnum.Enable.getValue()));
+    }
+
+    /**
+     * 收款二维码
+     */
+    @RequestMapping("code/list")
+    public List<WaterPaidImage> gotMoneyCodeImage() {
+        return paidImageService.list();
+    }
 
     /**
      * 翻译字典
@@ -74,6 +113,13 @@ public class COrderController {
         //        是上级
         result.put("isSuper", userByName.getUserIdentity() != null && userByName.getUserIdentity() == 2);
         return result;
+    }
+
+    @RequestMapping("isSuper")
+    public boolean isSuper(HttpServletRequest request) {
+        String username = JwtUtil.getUserNameByToken(request);
+        LoginUser userByName = commonAPI.getUserByName(username);
+        return userByName.getUserIdentity() != null && userByName.getUserIdentity() == 2;
     }
 
     /**
@@ -133,9 +179,13 @@ public class COrderController {
      */
     @RequestMapping("pick/list")
     public Page<OrderSendItemVO> listReceiveOrders(@RequestParam(value = "size", defaultValue = "10") Integer size,
-                                                   @RequestParam(value = "current", defaultValue = "1") Integer current, HttpServletRequest request) {
+                                                   @RequestParam(value = "current", defaultValue = "1") Integer current,
+                                                   @RequestParam(value = "address", required = false) String address,
+                                                   @RequestParam(value = "name", required = false) String receiveName,
+                                                   @RequestParam(value = "phone", required = false) String phone,
+                                                   HttpServletRequest request) {
         String username = JwtUtil.getUserNameByToken(request);
-        return orderService.pagePaidOrderItem(new Page<>(current, size), username);
+        return orderService.pagePaidOrderItem(new Page<>(current, size), username, address, receiveName, phone);
     }
 
     /**
@@ -143,9 +193,13 @@ public class COrderController {
      */
     @RequestMapping("receive/list")
     public Page<OrderSendItemVO> listGotToItOrders(@RequestParam(value = "size", defaultValue = "10") Integer size,
-                                                   @RequestParam(value = "current", defaultValue = "1") Integer current, HttpServletRequest request) {
+                                                   @RequestParam(value = "current", defaultValue = "1") Integer current,
+                                                   @RequestParam(value = "address", required = false) String address,
+                                                   @RequestParam(value = "name", required = false) String receiveName,
+                                                   @RequestParam(value = "phone", required = false) String phone,
+                                                   HttpServletRequest request) {
         String username = JwtUtil.getUserNameByToken(request);
-        return orderService.pageOwnOrderItemWithOutSend(new Page<>(current, size), username);
+        return orderService.pageOwnOrderItemWithOutSend(new Page<>(current, size), username, address, receiveName, phone);
     }
 
     /**
@@ -153,9 +207,13 @@ public class COrderController {
      */
     @RequestMapping("finish/list")
     public Page<OrderSendItemVO> listFinishOrders(@RequestParam(value = "size", defaultValue = "10") Integer size,
-                                                  @RequestParam(value = "current", defaultValue = "1") Integer current, HttpServletRequest request) {
+                                                  @RequestParam(value = "current", defaultValue = "1") Integer current,
+                                                  @RequestParam(value = "address", required = false) String address,
+                                                  @RequestParam(value = "name", required = false) String receiveName,
+                                                  @RequestParam(value = "phone", required = false) String phone,
+                                                  HttpServletRequest request) {
         String username = JwtUtil.getUserNameByToken(request);
-        return orderService.pageOwnSendOrderItem(new Page<>(current, size), username);
+        return orderService.pageOwnSendOrderItem(new Page<>(current, size), username, address, receiveName, phone);
     }
 
     /**
@@ -163,8 +221,12 @@ public class COrderController {
      */
     @RequestMapping("own/list")
     public Page<OrderSendItemVO> listOwnOrders(@RequestParam(value = "size", defaultValue = "10") Integer size,
-                                               @RequestParam(value = "current", defaultValue = "1") Integer current, HttpServletRequest request) {
+                                               @RequestParam(value = "current", defaultValue = "1") Integer current,
+                                               @RequestParam(value = "address", required = false) String address,
+                                               @RequestParam(value = "name", required = false) String receiveName,
+                                               @RequestParam(value = "phone", required = false) String phone,
+                                               HttpServletRequest request) {
         String username = JwtUtil.getUserNameByToken(request);
-        return orderService.pageOwnOrderAndItem(new Page<>(current, size), username);
+        return orderService.pageOwnOrderAndItem(new Page<>(current, size), username,address,receiveName,phone);
     }
 }
