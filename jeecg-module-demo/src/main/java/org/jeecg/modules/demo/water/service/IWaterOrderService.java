@@ -69,8 +69,10 @@ public interface IWaterOrderService extends MPJBaseService<WaterOrder> {
 
     /**
      * 完成派送订单
+     *
+     * @param paidType nullable
      */
-    boolean finishOrder(String sendId, String username);
+    boolean finishOrder(String sendId, String username, String paidType);
 
     /**
      * 确定订单
@@ -101,7 +103,7 @@ public interface IWaterOrderService extends MPJBaseService<WaterOrder> {
     /**
      * 根据日期查询订单
      */
-    Page<OrderSendItemVO> calculateSaleDetail(String time, Page<OrderSendItemVO> saleVOPage);
+    Page<OrderSendItemVO> calculateSaleDetail(String time, Page<OrderSendItemVO> saleVOPage, String sendName, String address, String receiveName, String phone);
 
     /**
      * 根据orderId获取微信订单

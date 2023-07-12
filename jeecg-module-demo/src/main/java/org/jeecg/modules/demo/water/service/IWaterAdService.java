@@ -16,4 +16,9 @@ public interface IWaterAdService extends IService<WaterAd> {
      * 派送端轮播图
      */
     List<WaterAd> sendCarousel();
+
+    /**
+     * 获取用户名
+     */
+    String getRealName(String username);
 }

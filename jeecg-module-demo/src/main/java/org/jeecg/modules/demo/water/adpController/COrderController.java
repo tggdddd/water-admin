@@ -9,14 +9,10 @@ import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.common.system.vo.DictModel;
 import org.jeecg.common.system.vo.LoginUser;
-import org.jeecg.modules.demo.water.entity.WaterAd;
-import org.jeecg.modules.demo.water.entity.WaterPaidImage;
-import org.jeecg.modules.demo.water.entity.WaterShopItem;
+import org.jeecg.modules.demo.water.constant.OrderConstant;
+import org.jeecg.modules.demo.water.entity.*;
 import org.jeecg.modules.demo.water.po.CreateOrderBySendPO;
-import org.jeecg.modules.demo.water.service.IWaterAdService;
-import org.jeecg.modules.demo.water.service.IWaterOrderService;
-import org.jeecg.modules.demo.water.service.IWaterPaidImageService;
-import org.jeecg.modules.demo.water.service.IWaterShopItemService;
+import org.jeecg.modules.demo.water.service.*;
 import org.jeecg.modules.demo.water.vo.DictEnum;
 import org.jeecg.modules.demo.water.vo.OrderSendItemVO;
 import org.jeecg.modules.demo.water.vo.SaleVO;
@@ -42,6 +38,32 @@ public class COrderController {
     ProvinceCityArea cityArea;
     @Autowired
     IWaterShopItemService itemService;
+    @Autowired
+    IWaterSendService sendService;
+
+    /**
+     * 删除自己创建的订单
+     */
+    @GetMapping("delete/myself")
+    public Result<String> deleteOrderByMyself(@RequestParam("orderId") String orderId, HttpServletRequest request) {
+        String username = JwtUtil.getUserNameByToken(request);
+        WaterOrder byId = orderService.getById(orderId);
+        if (byId.getCreateBy().equals(username) && byId.getOrdreStatus().equals(OrderConstant.WAITING_SEND)) {
+            orderService.removeById(orderId);
+            sendService.remove(new LambdaQueryWrapper<WaterSend>()
+                    .eq(WaterSend::getOrderId, orderId));
+            return Result.ok("删除成功");
+        }
+        return Result.error("不能删除该订单");
+    }
+
+    /**
+     * 获取用户姓名
+     */
+    @GetMapping("getRealName/{username}")
+    public String getRealName(@PathVariable String username) {
+        return adService.getRealName(username);
+    }
 
     /**
      * 创建派送单 （包括购买订单）
@@ -136,9 +158,14 @@ public class COrderController {
      * 每日销量详细订单
      */
     @RequestMapping("sale/detail/list")
-    public Page calculateSalesDeatil(@RequestParam("time") String time, @RequestParam(value = "size", defaultValue = "10") Integer size,
-                                     @RequestParam(value = "current", defaultValue = "1") Integer current) {
-        return orderService.calculateSaleDetail(time, new Page<>(current, size));
+    public Page calculateSalesDeatil(@RequestParam("time") String time,
+                                     @RequestParam(value = "size", defaultValue = "10") Integer size,
+                                     @RequestParam(value = "current", defaultValue = "1") Integer current,
+                                     @RequestParam(value = "address", required = false) String address,
+                                     @RequestParam(value = "name", required = false) String receiveName,
+                                     @RequestParam(value = "phone", required = false) String phone,
+                                     @RequestParam(value = "sendName", required = false) String sendName) {
+        return orderService.calculateSaleDetail(time, new Page<>(current, size), sendName, address, receiveName, phone);
     }
 
     /**
@@ -163,9 +190,9 @@ public class COrderController {
      * 骑手完成订单
      */
     @RequestMapping("finish")
-    public void finishOrder(@RequestParam(value = "sendId") String sendId, HttpServletRequest request, HttpServletResponse response) {
+    public void finishOrder(@RequestParam(value = "sendId") String sendId, @RequestParam(value = "paidType", required = false) String paidType, HttpServletRequest request, HttpServletResponse response) {
         String username = JwtUtil.getUserNameByToken(request);
-        setResponseStatus(orderService.finishOrder(sendId, username), response);
+        setResponseStatus(orderService.finishOrder(sendId, username,paidType), response);
     }
 
     private void setResponseStatus(boolean is200, HttpServletResponse response) {

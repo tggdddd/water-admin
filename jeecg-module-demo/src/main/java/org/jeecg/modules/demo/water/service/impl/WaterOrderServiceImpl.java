@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jeecg.common.api.CommonAPI;
 import org.jeecg.common.system.api.ISysBaseAPI;
 import org.jeecg.modules.base.ThinkResult;
+import org.jeecg.modules.demo.water.bo.SysUser;
 import org.jeecg.modules.demo.water.bo.WechatOrderBO;
 import org.jeecg.modules.demo.water.constant.OrderConstant;
 import org.jeecg.modules.demo.water.constant.PaidConstant;
@@ -124,13 +125,23 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     }
 
     @Override
-    public Page<OrderSendItemVO> calculateSaleDetail(String time, Page<OrderSendItemVO> page) {
+    public Page<OrderSendItemVO> calculateSaleDetail(String time, Page<OrderSendItemVO> page, String sendName, String address, String receiveName, String phone) {
         Page<OrderSendItemVO> p = sendMapper.selectJoinPage(page, OrderSendItemVO.class, new MPJLambdaWrapper<WaterSend>()
                 .selectAssociation(WaterSend.class, OrderSendItemVO::getSend)
                 .selectAssociation(WaterOrder.class, OrderSendItemVO::getOrder)
                 .in(WaterOrder::getOrdreStatus, OrderConstant.SEND, OrderConstant.WAITING_SEND, OrderConstant.FINISH, OrderConstant.EVALUATE)
                 .eq("DATE(t1.start_time)", LocalDate.parse(time.split(" ")[0]))
-                .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId));
+
+                .like(StringUtils.isNotBlank(address), WaterOrder::getAddress, address)
+                .like(StringUtils.isNotBlank(receiveName), WaterOrder::getName, receiveName)
+                .like(StringUtils.isNotBlank(phone), WaterOrder::getPhone, phone)
+
+
+                .like(StringUtils.isNotBlank(sendName), SysUser::getRealname, sendName)
+
+                .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId)
+                .leftJoin(SysUser.class, SysUser::getUsername, WaterOrder::getCreateBy)
+                .disableSubLogicDel());
         List<OrderSendItemVO> records = p.getRecords();
         for (OrderSendItemVO record : records) {
             WaterOrder order = record.getOrder();
@@ -278,7 +289,8 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                 .like(StringUtils.isNotBlank(address), WaterOrder::getAddress, address)
                 .like(StringUtils.isNotBlank(receiveName), WaterOrder::getName, receiveName)
                 .like(StringUtils.isNotBlank(phone), WaterOrder::getPhone, phone)
-                .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId));
+                .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId)
+                .disableSubLogicDel());
         List<OrderSendItemVO> records = p.getRecords();
         for (OrderSendItemVO record : records) {
             WaterOrder order = record.getOrder();
@@ -321,7 +333,8 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
                 .like(StringUtils.isNotBlank(address), WaterOrder::getAddress, address)
                 .like(StringUtils.isNotBlank(receiveName), WaterOrder::getName, receiveName)
                 .like(StringUtils.isNotBlank(phone), WaterOrder::getPhone, phone)
-                .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId));
+                .leftJoin(WaterOrder.class, WaterOrder::getId, WaterSend::getOrderId)
+                .disableSubLogicDel());
         List<OrderSendItemVO> records = p.getRecords();
         for (OrderSendItemVO record : records) {
             WaterOrder order = record.getOrder();
@@ -504,7 +517,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
 
     @Override
     @Transactional
-    public boolean finishOrder(String sendId, String username) {
+    public boolean finishOrder(String sendId, String username, String paidType) {
         //        派送单状态修改
         WaterSend waterSend = sendMapper.selectById(sendId);
         waterSend.setStatus(SendOrderConstant.FINISH);
@@ -516,6 +529,9 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
 //        订单状态修改
         WaterOrder waterOrder = orderMapper.selectById(waterSend.getOrderId());
         waterOrder.setOrdreStatus(OrderConstant.EVALUATE);
+        if (paidType != null) {
+            waterOrder.setPaidType(paidType);
+        }
         i = orderMapper.updateById(waterOrder);
         if (i == 0) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

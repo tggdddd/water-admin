@@ -23,6 +23,11 @@ public class WaterAdServiceImpl extends ServiceImpl<WaterAdMapper, WaterAd> impl
     WaterAdMapper adMapper;
 
     @Override
+    public String getRealName(String username) {
+        return adMapper.getRealName(username);
+    }
+
+    @Override
     public List<WaterAd> sendCarousel() {
         LambdaQueryWrapper<WaterAd> adWrapper = new LambdaQueryWrapper<WaterAd>()
                 .eq(WaterAd::getType, AdConstant.SEND)
