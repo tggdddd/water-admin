@@ -101,7 +101,6 @@ public class ThirdLoginController {
             if (userInfo == null) {
                 return ThinkResult.error(101);
             }
-            userInfo = userInfo.getJSONObject("userInfo");
             //否则直接创建新账号
             //构造第三方登录信息存储对象
             ThirdLoginModel tlm = new ThirdLoginModel(ThirdAppConfig.WECHAT_SMALL.toLowerCase(), appid, userInfo.getString("nickName"), userInfo.getString("avatarUrl"));
