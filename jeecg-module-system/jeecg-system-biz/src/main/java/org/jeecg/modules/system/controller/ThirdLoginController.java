@@ -121,6 +121,10 @@ public class ThirdLoginController {
             sysUser = sysUserService.getById(sysUserId);
         } else {
             sysUser = sysThirdAccountService.createUser(appid);
+            JSONObject userInfo = requestJSON.getJSONObject("userInfo");
+            sysUser.setAvatar(userInfo.getString("avatarUrl"));
+            sysUser.setRealname(userInfo.getString("nickName"));
+            sysUserService.updateById(sysUser);
             //            添加邀请信息
             String string = requestJSON.getString("inviteCode");
             if (StringUtils.isNotBlank(string)) {
