@@ -1,5 +1,6 @@
 package org.jeecg.modules.demo.water.appController;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -9,10 +10,7 @@ import org.jeecg.common.system.api.ISysBaseAPI;
 import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.modules.base.ThinkResult;
 import org.jeecg.modules.demo.water.constant.AdConstant;
-import org.jeecg.modules.demo.water.entity.WaterAd;
-import org.jeecg.modules.demo.water.entity.WaterClass;
-import org.jeecg.modules.demo.water.entity.WaterShop;
-import org.jeecg.modules.demo.water.entity.WaterShopItem;
+import org.jeecg.modules.demo.water.entity.*;
 import org.jeecg.modules.demo.water.service.*;
 import org.jeecg.modules.demo.water.vo.DictEnum;
 import org.jeecg.modules.demo.water.vo.ShopVo;
@@ -39,6 +37,8 @@ public class IndexController {
     ISysBaseAPI sysBaseAPI;
     @Autowired
     IWaterShopCartService cartService;
+    @Autowired
+    IWaterPromoteActivityService activityService;
 
     @RequestMapping("init")
     public ThinkResult getIndex(HttpServletRequest request) {
@@ -66,7 +66,18 @@ public class IndexController {
             result.put("cartCount", 0);
         }
 //        推广活动
-        result.put("share", new JSONObject());
+
+        List<WaterPromoteActivity> activities = activityService.list(new LambdaQueryWrapper<WaterPromoteActivity>()
+                .eq(WaterPromoteActivity::getStatus, DictEnum.Enable.getValue())
+                .orderByDesc(WaterPromoteActivity::getSort));
+        JSONArray shareJSON = new JSONArray();
+        for (WaterPromoteActivity activity : activities) {
+            JSONObject tempJSON = new JSONObject();
+            tempJSON.put("id", activity.getId());
+            tempJSON.put("imageString", activity.getImage());
+            shareJSON.add(tempJSON);
+        }
+        result.put("share", shareJSON);
         return ThinkResult.ok(result);
     }
 

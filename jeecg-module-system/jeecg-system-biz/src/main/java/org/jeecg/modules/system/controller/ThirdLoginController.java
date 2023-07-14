@@ -1,5 +1,6 @@
 package org.jeecg.modules.system.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xkcoding.justauth.AuthRequestFactory;
@@ -9,6 +10,7 @@ import me.zhyd.oauth.model.AuthCallback;
 import me.zhyd.oauth.model.AuthResponse;
 import me.zhyd.oauth.request.AuthRequest;
 import me.zhyd.oauth.utils.AuthStateUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.util.JwtUtil;
@@ -16,6 +18,11 @@ import org.jeecg.common.util.*;
 import org.jeecg.config.thirdapp.ThirdAppConfig;
 import org.jeecg.config.thirdapp.ThirdAppTypeItemVo;
 import org.jeecg.modules.base.service.BaseCommonService;
+import org.jeecg.modules.demo.water.constant.PromoteConstant;
+import org.jeecg.modules.demo.water.entity.WaterPromoteActivity;
+import org.jeecg.modules.demo.water.entity.WaterPromoteWinning;
+import org.jeecg.modules.demo.water.service.IWaterPromoteActivityService;
+import org.jeecg.modules.demo.water.service.IWaterPromoteWinningService;
 import org.jeecg.modules.system.entity.SysThirdAccount;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.model.ThirdLoginModel;
@@ -63,7 +70,10 @@ public class ThirdLoginController {
     private ThirdAppWechatEnterpriseServiceImpl thirdAppWechatEnterpriseService;
     @Autowired
     private ThirdAppDingtalkServiceImpl thirdAppDingtalkService;
-
+    @Autowired
+    private IWaterPromoteWinningService winningService;
+    @Autowired
+    private IWaterPromoteActivityService activityService;
 
     @ApiOperation("小程序登录")
     @RequestMapping(value = "/loginByWeixin")
@@ -111,6 +121,29 @@ public class ThirdLoginController {
             sysUser = sysUserService.getById(sysUserId);
         } else {
             sysUser = sysThirdAccountService.createUser(appid);
+            //            添加邀请信息
+            String string = requestJSON.getString("inviteCode");
+            if (StringUtils.isNotBlank(string)) {
+                try {
+                    JSONObject jsonObject = JSON.parseObject((String) redisUtil.get("wechat_scene_" + string));
+                    if (jsonObject != null) {
+                        String username = jsonObject.getString("username");
+                        String activityId = jsonObject.getString("activeId");
+                        if (username != null && activityId != null) {
+                            WaterPromoteActivity activity = activityService.getById(activityId);
+                            WaterPromoteWinning winning = new WaterPromoteWinning();
+                            winning.setActivityId(activityId);
+                            winning.setRegisterUserId(sysUser.getUsername());
+                            winning.setUserId(username);
+                            winning.setRelief(activity.getRelief());
+                            winning.setShopItemId(activity.getShopItemId());
+                            winning.setStatus(PromoteConstant.REGISTER);
+                            winningService.save(winning);
+                        }
+                    }
+                } catch (Exception ignore) {
+                }
+            }
         }
         token = JwtUtil.sign(sysUser.getUsername(), sysUser.getPassword());
         // 设置token缓存有效时间

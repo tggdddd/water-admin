@@ -15,12 +15,10 @@ import org.jeecg.modules.demo.water.bo.SysUser;
 import org.jeecg.modules.demo.water.bo.WechatOrderBO;
 import org.jeecg.modules.demo.water.constant.OrderConstant;
 import org.jeecg.modules.demo.water.constant.PaidConstant;
+import org.jeecg.modules.demo.water.constant.PromoteConstant;
 import org.jeecg.modules.demo.water.constant.SendOrderConstant;
 import org.jeecg.modules.demo.water.entity.*;
-import org.jeecg.modules.demo.water.mapper.WaterOrderMapper;
-import org.jeecg.modules.demo.water.mapper.WaterSendMapper;
-import org.jeecg.modules.demo.water.mapper.WaterShopCartMapper;
-import org.jeecg.modules.demo.water.mapper.WaterShopItemMapper;
+import org.jeecg.modules.demo.water.mapper.*;
 import org.jeecg.modules.demo.water.po.CreateOrderBySendPO;
 import org.jeecg.modules.demo.water.po.SubmitOrderParamsPO;
 import org.jeecg.modules.demo.water.service.IWaterOrderService;
@@ -62,6 +60,8 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
     CommonAPI commonAPI;
     @Autowired
     IWaterShopService shopService;
+    @Autowired
+    WaterPromoteWinningMapper winningMapper;
 
     @Override
     @Transactional
@@ -201,7 +201,7 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
         return false;
     }
 
-    private boolean generateSendOrder(String orderId, String sysOrgCode) {
+    public boolean generateSendOrder(String orderId, String sysOrgCode) {
         WaterSend waterSend = new WaterSend();
         waterSend.setOrderId(orderId);
         waterSend.setSysOrgCode(sysOrgCode);
@@ -509,6 +509,14 @@ public class WaterOrderServiceImpl extends MPJBaseServiceImpl<WaterOrderMapper, 
             i = orderMapper.updateById(order);
         }
         if (i == 1 && j) {
+            //        判断是否为活动
+            WaterPromoteWinning one = winningMapper.selectOne(new LambdaQueryWrapper<WaterPromoteWinning>()
+                    .eq(WaterPromoteWinning::getRegisterUserId, username)
+                    .eq(WaterPromoteWinning::getStatus, PromoteConstant.REGISTER));
+            if (one != null) {
+                one.setStatus(PromoteConstant.SUCCESS);
+                winningMapper.updateById(one);
+            }
             return true;
         }
         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

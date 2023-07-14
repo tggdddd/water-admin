@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/app/order")
@@ -81,18 +82,27 @@ public class OrderController {
         }
         return ThinkResult.ok();
     }
-
     /**
      * 微信支付订单生成
      */
     @RequestMapping("pay")
     public ThinkResult payOrder(@RequestParam("orderId") String orderId) {
-
+        WaterOrder order = orderService.getById(orderId);
+        if (order.getPrices().equals("0")) {
+            if (Objects.equals(order.getOrdreStatus(), OrderConstant.UNPAID)) {
+                order.setOrdreStatus(OrderConstant.WAITING_SEND);
+                orderMapper.updateById(order);
+//                创建派送单
+                orderService.generateSendOrder(orderId, order.getLocatonType());
+            }
+            return ThinkResult.error("无需付款");
+        }
         PrepayWithRequestPaymentResponse prepayWithRequestPaymentResponse = orderService.generateWeChatOrder(orderId);
         if (prepayWithRequestPaymentResponse != null) {
             return ThinkResult.ok(prepayWithRequestPaymentResponse);
         }
         return ThinkResult.error("生成支付订单失败");
+
     }
 
     /**

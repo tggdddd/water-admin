@@ -1,6 +1,7 @@
 package org.jeecg.modules.demo.water.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.github.yulichang.base.MPJBaseService;
+import org.jeecg.modules.demo.water.entity.WaterOrder;
 import org.jeecg.modules.demo.water.entity.WaterPromoteWinning;
 
 /**
@@ -9,6 +10,9 @@ import org.jeecg.modules.demo.water.entity.WaterPromoteWinning;
  * @Date: 2023-07-10
  * @Version: V1.0
  */
-public interface IWaterPromoteWinningService extends IService<WaterPromoteWinning> {
-
+public interface IWaterPromoteWinningService extends MPJBaseService<WaterPromoteWinning> {
+    /**
+     * 领取奖品
+     */
+    WaterOrder generateRewardOrder(WaterPromoteWinning record, String username);
 }

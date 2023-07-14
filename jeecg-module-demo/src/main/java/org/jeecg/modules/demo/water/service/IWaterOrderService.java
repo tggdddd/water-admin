@@ -122,4 +122,6 @@ public interface IWaterOrderService extends MPJBaseService<WaterOrder> {
      * @return String非null  报错情况
      */
     String createOrderWithOutPaid(String username, CreateOrderBySendPO params);
+
+    public boolean generateSendOrder(String orderId, String sysOrgCode);
 }
