@@ -48,7 +48,9 @@ public class COrderController {
     public Result<String> deleteOrderByMyself(@RequestParam("orderId") String orderId, HttpServletRequest request) {
         String username = JwtUtil.getUserNameByToken(request);
         WaterOrder byId = orderService.getById(orderId);
-        if (byId.getCreateBy().equals(username) && byId.getOrdreStatus().equals(OrderConstant.WAITING_SEND)) {
+        if (
+//                byId.getCreateBy().equals(username) &&
+                byId.getOrdreStatus().equals(OrderConstant.WAITING_SEND)) {
             orderService.removeById(orderId);
             sendService.remove(new LambdaQueryWrapper<WaterSend>()
                     .eq(WaterSend::getOrderId, orderId));
