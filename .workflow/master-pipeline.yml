@@ -19,11 +19,16 @@ stages:
         jdkVersion: 8
         mavenVersion: 3.3.9
         commands:
-          - mvn -B clean package -Dmaven.test.skip=true -Pprod
+          - mvn -B -T 1C clean package -Dmaven.test.skip=true -Pprod
         artifacts:
           - name: BUILD_ARTIFACT
             path:
               - ./jeecg-module-system/jeecg-system-start/target/*.jar
+        settings: []
+        caches:
+          - ~/.m2
+        notify: []
+        strategy: {}
       - step: publish@general_artifacts
         name: publish_general_artifacts
         displayName: 上传制品
